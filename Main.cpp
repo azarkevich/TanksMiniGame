@@ -101,22 +101,7 @@ int main(int argc, char **argv)
 	TilesCache::main = load_sprites("resources/sprites.bmp", 32, 32, 1, 1, 0, 0, 0);
 
 	World w(screen->w, screen->h);
-	w.load_level("\
-wwwwwwwwwwwwwwwwwwww\n\
-wtt  t  t  t  t wtFw\n\
-wtT  ww wwww    wwww\n\
-wtT        w       w\n\
-w       b  wwww    w\n\
-w             www  w\n\
-w   tThH  b   www  w\n\
-w             www  w\n\
-w      bb     www  w\n\
-w      bb          w\n\
-w         g        w\n\
-wtGb   b    G      w\n\
-w       www        w\n\
-wp      wfw        w\n\
-wwwwwwwwwwwwwwwwwwww");
+	w.set_level("resources/first.level");
 	
 	SDL_Event ev;
 

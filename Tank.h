@@ -14,6 +14,7 @@ class Tank : public Object
 	Sprite *_orients[4];
 	BounceBox _orients_bb[4];
 public:
+	int BulletArmour;
 	int InitialArmour;
 	int Armour;
 	int Orient;

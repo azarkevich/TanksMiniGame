@@ -39,6 +39,11 @@ Bullet::Bullet(World *w, int orient, int x, int y, Object *e)
 	hit_delay = 0;
 }
 
+void Bullet::set_armour(int armour)
+{
+	Armour = armour;
+}
+
 int Bullet::type()
 {
 	return OBJ_BULLET;

@@ -5,11 +5,26 @@
 #include "World.h"
 #include "Bullet.h"
 
-Wall::Wall(World *w, int x, int y)
+static const char *wall_types[] = {
+	"resources/wall-a.sprite",
+	"resources/wall-b.sprite",
+	"resources/wall-c.sprite",
+	"resources/wall-d.sprite"
+};
+
+static bool destroyable[] = {
+	true,
+	true,
+	false,
+	false,
+};
+
+Wall::Wall(World *w, int x, int y, int wall_type)
 {
 	_world = w;
+	this->wall_type = wall_type;
 	sprite = new Sprite();
-	sprite->load(TilesCache::main, "resources/wall.sprite");
+	sprite->load(TilesCache::main, wall_types[wall_type]);
 	BBox = BounceBox(0, 0, 32, 32);
 	X = x;
 	Y = y;
@@ -27,14 +42,17 @@ void Wall::draw(SDL_Surface *s)
 bool Wall::hit_by(Bullet *b)
 {
 	_world->add_explode(b->X, b->Y);
-	if(sprite->next() == false)
+	if(destroyable[wall_type])
 	{
-		BounceBox b = BBox;
-		b.x += X;
-		b.y += Y;
-		_world->add_explode_area(b, 5);
-		BBox = BounceBox();
-		remove_delay(1000);
+		if(sprite->next() == false)
+		{
+			BounceBox b = BBox;
+			b.x += X;
+			b.y += Y;
+			_world->add_explode_area(b, 5);
+			BBox = BounceBox();
+			remove_delay(1000);
+		}
 	}
 
 	return true;

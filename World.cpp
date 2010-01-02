@@ -8,6 +8,7 @@
 #include "Tank.h"
 #include "Flag.h"
 #include "Gun.h"
+#include "Bonus.h"
 
 Uint32 WorldTime::now;
 
@@ -23,7 +24,19 @@ World::World(int w, int h)
 	_player = NULL;
 	player_start_x = 0;
 	player_start_y = 0;
-	lives = 5;
+	mode_image[0] = NULL;
+	mode_image[1] = NULL;
+	mode_image[2] = SDL_LoadBMP("resources/game-pause.bmp");
+	mode_image[3] = SDL_LoadBMP("resources/game-over.bmp");
+	mode_image[4] = SDL_LoadBMP("resources/game-win.bmp");
+	for(int i=0;i<5;i++)
+	{
+		if(mode_image[i] != NULL)
+		{
+			SDL_SetColorKey(mode_image[i], SDL_SRCCOLORKEY, SDL_MapRGB(mode_image[i]->format, 0, 0, 0));
+			SDL_SetAlpha(mode_image[i], SDL_SRCALPHA, 240);
+		}
+	}
 }
 
 World::~World()
@@ -32,6 +45,16 @@ World::~World()
 	{
 		delete _objs[i];
 	}
+	for(int i=0;i<5;i++)
+	{
+		if(mode_image[i] != NULL)
+			SDL_FreeSurface(mode_image[i]);
+	}
+}
+
+void World::set_level(const char* level)
+{
+  this->level = level;
 }
 
 void World::load_level(const char* level)
@@ -41,117 +64,161 @@ void World::load_level(const char* level)
 
 	int x = 1;
 	int y = 1;
-
-	for(unsigned int i=0;i<strlen(level);i++)
+	
+	ifstream ifs(level);
+	if(ifs.bad())
 	{
-		if(level[i] == '\r')
-			continue;
-		if(level[i] == '\n')
+		cout << "Can't open level file " << level << endl;
+		exit(1);
+	}
+	
+	while(ifs.eof() == false)
+	{
+		char l[256];
+		ifs.getline(l, 256);
+		
+		x = 0;
+
+		for(unsigned int i=0;i<strlen(l);i++)
 		{
-			x = 0;
-			y += 33;
-			height = std::max(height, y);
-			continue;
+			switch(l[i])
+			{
+			case ' ':
+				break;
+			case 'w':
+				_objs.push_back(new Wall(this, x, y, WALL_A));
+				break;
+			case 'W':
+				_objs.push_back(new Wall(this, x, y, WALL_B));
+				break;
+			case 'c':
+				_objs.push_back(new Wall(this, x, y, WALL_CONCRETE_A));
+				break;
+			case 'C':
+				_objs.push_back(new Wall(this, x, y, WALL_CONCRETE_B));
+				break;
+			case 'g':
+				_objs.push_back(new Gun(this, x, y, ORIENT_UP, 5, 1000));
+				break;
+			case 'G':
+				_objs.push_back(new Gun(this, x, y, ORIENT_DOWN, 5, 1000));
+				break;
+			case 'b':
+				_objs.push_back(new Bush(x, y));
+				break;
+			case 't':
+				_objs.push_back(new Tank(this, TANK_ENIMY, x, y, 2));
+				break;
+			case 'T':
+				_objs.push_back(new Tank(this, TANK_ENIMY, x, y, 3));
+				break;
+			case 'h':
+				_objs.push_back(new Tank(this, TANK_ENIMY, x, y, 4));
+				break;
+			case 'H':
+				_objs.push_back(new Tank(this, TANK_ENIMY, x, y, 5));
+				break;
+			case 's':
+				_objs.push_back(new Bonus(x, y, BONUS_SUPER_BULLET));
+				break;
+			case '+':
+				_objs.push_back(new Bonus(x, y, BONUS_HEAL));
+				break;
+			case 'p':
+				player_start_x = x;
+				player_start_y = y;
+				break;
+			case 'F':
+				enimy_flag = new Flag(this, x, y);
+				_objs.push_back(enimy_flag);
+				break;
+			case 'f':
+				player_flag = new Flag(this, x, y);
+				_objs.push_back(player_flag);
+				break;
+			}
+			x += 32;
 		}
 
-		switch(level[i])
-		{
-		case ' ':
-			break;
-		case 'w':
-			_objs.push_back(new Wall(this, x, y));
-			break;
-		case 'g':
-			_objs.push_back(new Gun(this, x, y, ORIENT_UP, 5, 1000));
-			break;
-		case 'G':
-			_objs.push_back(new Gun(this, x, y, ORIENT_DOWN, 5, 1000));
-			break;
-		case 'b':
-			_objs.push_back(new Bush(x, y));
-			break;
-		case 't':
-			_objs.push_back(new Tank(this, TANK_ENIMY, x, y, 2));
-			break;
-		case 'T':
-			_objs.push_back(new Tank(this, TANK_ENIMY, x, y, 3));
-			break;
-		case 'h':
-			_objs.push_back(new Tank(this, TANK_ENIMY, x, y, 4));
-			break;
-		case 'H':
-			_objs.push_back(new Tank(this, TANK_ENIMY, x, y, 5));
-			break;
-		case 'p':
-			player_start_x = x;
-			player_start_y = y;
-			break;
-		case 'F':
-		case 'f':
-			_objs.push_back(new Flag(this, x, y));
-			break;
-		}
-		x += 33;
+		y += 32;
 		width = std::max(width, x);
 	}
+	height = y;
 }
 
 void World::handle_input(const SDL_Event &ev)
 {
+    if(ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_b)
+    {
+      _show_bb = (_show_bb + 1) % 3;
+      return;
+    }
+    
 	if(ev.type == SDL_KEYDOWN)
 	{
-		if(ev.key.keysym.sym == SDLK_RETURN)
+		// Lose/win mode. Any key - begin new game
+		if(game_mode == GAME_MODE_LOSE || game_mode == GAME_MODE_WIN)
 		{
-			_show_bb = (_show_bb + 1) % 3;
-		}
-		if(ev.key.keysym.sym == SDLK_p)
-		{
-			if(game_mode == GAME_MODE_PLAY)
+			if(ev.key.keysym.sym == SDLK_SPACE)
 			{
-				game_mode = GAME_MODE_PAUSE;
+				game_mode = GAME_MODE_START;
 			}
-			else if(game_mode == GAME_MODE_PAUSE)
-			{
-				game_mode = GAME_MODE_PLAY;
-				_world_time_diff = SDL_GetTicks() - WorldTime::now;
-			}
-		}
-		if(game_mode != GAME_MODE_PLAY)
 			return;
-		
-		if(_player == NULL)
-			return;
-		
-		if(ev.key.keysym.sym == SDLK_SPACE)
-		{
-			_player->fire();
 		}
-		if(ev.key.keysym.sym == SDLK_UP || ev.key.keysym.sym == SDLK_DOWN || ev.key.keysym.sym == SDLK_LEFT || ev.key.keysym.sym == SDLK_RIGHT)
-		{
-			int old_orient = _player->Orient;
-			if(ev.key.keysym.sym == SDLK_UP)
+		
+		if(game_mode == GAME_MODE_PLAY || game_mode == GAME_MODE_PAUSE)
+        {
+			if(ev.key.keysym.sym == SDLK_p)
 			{
-				_player->move_to(ORIENT_UP);
+				if(game_mode == GAME_MODE_PLAY)
+				{
+					game_mode = GAME_MODE_PAUSE;
+				}
+				else if(game_mode == GAME_MODE_PAUSE)
+				{
+					game_mode = GAME_MODE_PLAY;
+					_world_time_diff = SDL_GetTicks() - WorldTime::now;
+				}
+				return;
 			}
-			if(ev.key.keysym.sym == SDLK_DOWN)
+		}
+		
+		if(game_mode == GAME_MODE_PLAY)
+        {
+			if(_player != NULL)
 			{
-				_player->move_to(ORIENT_DOWN);
-			}
-			if(ev.key.keysym.sym == SDLK_LEFT)
-			{
-				_player->move_to(ORIENT_LEFT);
-			}
-			if(ev.key.keysym.sym == SDLK_RIGHT)
-			{
-				_player->move_to(ORIENT_RIGHT);
-			}
+				if(ev.key.keysym.sym == SDLK_SPACE)
+				{
+					_player->fire();
+				}
+				if(ev.key.keysym.sym == SDLK_UP || ev.key.keysym.sym == SDLK_DOWN || ev.key.keysym.sym == SDLK_LEFT || ev.key.keysym.sym == SDLK_RIGHT)
+				{
+					int old_orient = _player->Orient;
+					if(ev.key.keysym.sym == SDLK_UP)
+					{
+						_player->move_to(ORIENT_UP);
+					}
+					if(ev.key.keysym.sym == SDLK_DOWN)
+					{
+						_player->move_to(ORIENT_DOWN);
+					}
+					if(ev.key.keysym.sym == SDLK_LEFT)
+					{
+						_player->move_to(ORIENT_LEFT);
+					}
+					if(ev.key.keysym.sym == SDLK_RIGHT)
+					{
+						_player->move_to(ORIENT_RIGHT);
+					}
 
-			if(is_possible_position(_player) == false)
-			{
-				_player->move_to(old_orient);
-				_player->stop();
+					if(is_possible_position(_player) == false)
+					{
+						_player->move_to(old_orient);
+						_player->stop();
+					}
+				}
 			}
-		}
+        }
 	}
 }
 
@@ -260,28 +327,28 @@ void World::try_move_tank(Tank *t)
 		bb_down -= diff;
 		t->stop();
 	}
-
-}
-
-void World::start_game()
-{
-	game_mode = GAME_MODE_PLAY;
-	respawn_player_at = WorldTime::now + 1000;
 }
 
 void World::think()
 {
 	if(game_mode == GAME_MODE_PAUSE)
 		return;
-	
-	if(game_mode == GAME_MODE_LOSE)
-		return;
 
 	WorldTime::now = SDL_GetTicks() - _world_time_diff;
 	
 	if(game_mode == GAME_MODE_START)
 	{
-		start_game();
+		// TODO: delete
+		_objs.clear();
+		player_flag = NULL;
+		enimy_flag = NULL;
+		_player = NULL;
+		_world_time_diff = 0;
+		respawn_player_at = WorldTime::now + 1000;
+		lives = 1;
+		load_level(level);
+		game_mode = GAME_MODE_PLAY;
+		return;
 	}
 
 	if(respawn_player_at <= WorldTime::now)
@@ -362,28 +429,73 @@ void World::think()
 		}
 	}
 	
+	// Tank collisions with bonuses
+	for(unsigned int i=0;i<_objs.size();i++)
+	{
+		// select bonuses
+		if(_objs[i]->is_remove_pending() || _objs[i]->type() != OBJ_BONUS)
+			continue;
+		Bonus *b = (Bonus *)_objs[i];
+
+		// compare with other objects
+		for(unsigned int j=0;j<_objs.size();j++)
+		{
+			// self to self deny
+			if(i == j)
+				continue;
+
+			if(_objs[j]->type() != OBJ_TANK || _objs[j]->is_remove_pending())
+				continue;
+
+			Tank *t = (Tank *)_objs[j];
+
+			if(BounceBox::is_intersect(b, t))
+			{
+				b->action(t);
+			}
+		}
+	}
+
 	// think
 	for(unsigned int i=0;i<_objs.size();i++)
 	{
 		_objs[i]->think();
 	}
 	
-	if(_player != NULL && _player->is_remove_pending())
-	{
-		_player = NULL;
-		
-		if(lives == 0)
+    // Check game state
+	if(game_mode == GAME_MODE_PLAY)
+    {
+		if(_player != NULL && _player->is_remove_pending())
+		{
+			_player = NULL;
+			lives--;
+			
+			if(lives == 0)
+			{
+				game_mode = GAME_MODE_LOSE;
+			}
+			else
+			{
+				// respawn after 2 sec.
+				respawn_player_at = WorldTime::now + 2000;
+			}
+		}
+
+		if(player_flag != NULL && player_flag->Dead)
 		{
 			game_mode = GAME_MODE_LOSE;
 		}
-		else
+
+		if(enimy_flag != NULL && enimy_flag->Dead)
 		{
-			// respawn after 2 sec.
-			respawn_player_at = WorldTime::now + 2000;
+			game_mode = GAME_MODE_WIN;
 		}
-	}
-	
-	// Remove pending objects
+
+		if(game_mode != GAME_MODE_PLAY && _player != NULL)
+			_player->stop();
+    }
+
+    // Remove pending objects
 	for(unsigned int i=0;i<_objs.size();i++)
 	{
 		if(_objs[i]->is_removed())
@@ -393,9 +505,6 @@ void World::think()
 			i--;
 		}
 	}
-	
-	
-//	cout << _objs.size() << endl;
 }
 
 void World::add_explode(int x, int y)
@@ -439,7 +548,7 @@ void World::draw(SDL_Surface *s)
 	{
 		Object *o = _objs[i];
 		int type = o->type();
-		if(type == OBJ_WALL || type == OBJ_BULLET || type == OBJ_TANK || type == OBJ_FLAG || type == OBJ_GUN)
+		if(type != OBJ_EXPLODE && type != OBJ_BUSH)
 			o->draw(s);
 	}
 
@@ -459,4 +568,14 @@ void World::draw(SDL_Surface *s)
 
 	if(_show_bb == 2)
 		show_bb(s);
+
+	if(mode_image[game_mode] != NULL)
+	{
+		SDL_Rect dest;
+		
+		dest.x = (s->w - mode_image[game_mode]->w)/2;
+		dest.y = (s->h - mode_image[game_mode]->h)/2;
+
+		SDL_BlitSurface(mode_image[game_mode], NULL, s, &dest);
+	}
 }

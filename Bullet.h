@@ -15,6 +15,8 @@ public:
 	int Armour;
 
 	Bullet(World *w, int orient, int x, int y, Object *emiter);
+	
+	void set_armour(int armour);
 
 	virtual void draw(SDL_Surface *s);
 	virtual void think();

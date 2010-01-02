@@ -6,11 +6,13 @@
 #include "Bush.h"
 #include "Wall.h"
 #include "Explode.h"
+#include "Flag.h"
 
 #define GAME_MODE_START 0
 #define GAME_MODE_PLAY 1
 #define GAME_MODE_PAUSE 2
 #define GAME_MODE_LOSE 3
+#define GAME_MODE_WIN 4
 
 class World
 {
@@ -26,19 +28,25 @@ class World
 	void try_move_tank(Tank *t);
 	bool is_possible_position(Object *o);
 	int game_mode;
-	void start_game();
 	int player_start_x, player_start_y;
 	Uint32 respawn_player_at;
 	int lives;
+	SDL_Surface *mode_image[5];
+    
+    void load_level(const char* level);
+    const char *level;
+    
+    Flag *player_flag;
+    Flag *enimy_flag;
 public:
 	SDL_Rect bounds;
 
 	World(int w, int h);
 	~World();
 
-	void load_level(const char* level);
+    void set_level(const char* level);
 
-	void add_explode(int x, int y);
+    void add_explode(int x, int y);
 	
 	void add_object(Object *o)
 	{
