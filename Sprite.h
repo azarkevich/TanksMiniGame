@@ -19,7 +19,6 @@ public:
 	int Duration;
 
 	Sprite();
-	~Sprite();
 
 	void think();
 
@@ -31,4 +30,14 @@ public:
 	void play(bool cycle) { set_state(cycle ? SPRITE_PLAY_CYCLE : SPRITE_PLAY_ONCE); }
 
 	void load(const vector<SDL_Surface *> &v, const char *file);
+
+	bool next()
+	{
+		if(_current_frame == frames.size())
+			return false;
+		_current_frame++;
+		if(_current_frame == frames.size())
+			return false;
+		return true;
+	}
 };

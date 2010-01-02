@@ -12,10 +12,7 @@ class World
 	bool _pause;
 	Uint32 _world_time_diff;
 	int _show_bb;
-//	vector<Wall *> _walls;
-//	vector<Bush *> _bushes;
-//	vector<Explode *> _explodes;
-//	vector<Tank *> _tanks;
+	vector< pair<Uint32, Object *> > add_queue;
 	vector<Object *> _objs;
 	Tank *_player;
 
@@ -43,7 +40,11 @@ public:
 	{
 		_objs.push_back(o);
 	}
-
+	void add_object_delay(Object *o, Uint32 delay)
+	{
+		add_queue.push_back(make_pair(WorldTime::now + delay, o));
+	}
+	void add_explode_area(SDL_Rect box, int count);
 	void handle_input(const SDL_Event &ev);
 	void think();
 	void draw(SDL_Surface *s);

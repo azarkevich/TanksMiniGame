@@ -8,10 +8,6 @@ Sprite::Sprite()
 	Duration = 0;
 }
 
-Sprite::~Sprite()
-{
-}
-
 void Sprite::think()
 {
 	if(_state == SPRITE_STOP || _state == SPRITE_DONE || _state == SPRITE_PAUSE)

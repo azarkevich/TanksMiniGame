@@ -26,9 +26,16 @@ void Wall::draw(SDL_Surface *s)
 
 bool Wall::hit_by(Bullet *b)
 {
-	_world->add_explode(b->X + rand() % 2 - 1, b->Y + rand() % 2 - 1);
-	if(sprite->get_state() == SPRITE_STOP)
-		sprite->play(false);
+	_world->add_explode(b->X, b->Y);
+	if(sprite->next() == false)
+	{
+		BounceBox b = BBox;
+		b.x += X;
+		b.y += Y;
+		_world->add_explode_area(b, 5);
+		BBox = BounceBox();
+		remove_delay(1000);
+	}
 
 	return true;
 }
@@ -40,7 +47,5 @@ int Wall::type()
 
 void Wall::think()
 {
-	if(sprite->get_state() == SPRITE_DONE)
-		Removed = true;
 	sprite->think();
 }

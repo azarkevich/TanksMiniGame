@@ -110,7 +110,7 @@ w             www  w\n\
 w      bb     www  w\n\
 w      bb          w\n\
 w                  w\n\
-w  b   b           w\n\
+wt b   b           w\n\
 w                  w\n\
 wp                 w\n\
 wwwwwwwwwwwwwwwwwwww");

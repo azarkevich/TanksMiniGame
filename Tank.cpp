@@ -118,14 +118,19 @@ void Tank::stop()
 
 bool Tank::hit_by(Bullet *b)
 {
-	_world->add_explode(b->X, b->Y);
 	if(Armour == 0)
 	{
-		Removed = true;
+		remove_delay(2000);
+		BounceBox b = BBox;
+		b.x += X;
+		b.y += Y;
+		_world->add_explode_area(b, 10);
+		BBox = BounceBox();
 	}
 	else
 	{
 		Armour--;
+		_world->add_explode(b->X, b->Y);
 	}
 	return true;
 }

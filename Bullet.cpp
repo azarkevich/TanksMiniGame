@@ -56,7 +56,7 @@ void Bullet::hit(Object *o)
 		if(Armour == 0)
 		{
 			//_world->add_explode(X, Y);
-			Removed = true;
+			remove();
 		}
 		else
 		{
@@ -70,7 +70,7 @@ bool Bullet::hit_by(Bullet *b)
 {
 	// Destroy self with explode
 	_world->add_explode(X, Y);
-	Removed = true;
+	remove();
 
 	// report about interaction
 	return true;

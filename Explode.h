@@ -18,7 +18,7 @@ public:
 	virtual void think()
 	{
 		if(sprite->get_state() == SPRITE_DONE)
-			Removed = true;
+			remove();
 		sprite->think();
 	}
 

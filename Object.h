@@ -8,12 +8,12 @@ class Bullet;
 
 class Object
 {
+	Uint32 remove_at;
 public:
 	int X, Y;
 	Sprite *sprite;
 	MoveInfo *move_info;
 	BounceBox BBox;
-	bool Removed;
 
 	Object();
 	virtual ~Object();
@@ -25,4 +25,8 @@ public:
 	virtual int type() = 0;
 
 	virtual bool hit_by(Bullet *o);
+
+	void remove(Uint32 at = 0);
+	void remove_delay(Uint32 delay);
+	bool is_removed();
 };

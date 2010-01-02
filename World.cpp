@@ -251,7 +251,7 @@ void World::handle_removed(vector<T *> &v)
 {
 	for(unsigned int i=0;i<v.size();i++)
 	{
-		if(v[i]->Removed)
+		if(v[i]->is_removed())
 		{
 			v.erase(v.begin() + i);
 			i--;
@@ -266,6 +266,16 @@ void World::think()
 
 	WorldTime::now = SDL_GetTicks() - _world_time_diff;
 
+	// add pending objects
+	for(unsigned int i=0;i<add_queue.size();i++)
+	{
+		if(add_queue[i].first <= WorldTime::now)
+		{
+			add_object(add_queue[i].second);
+			add_queue.erase(add_queue.begin() + i);
+			i--;
+		}
+	}
 	// Move bullets
 	for(unsigned int i=0;i<_objs.size();i++)
 	{
@@ -277,7 +287,7 @@ void World::think()
 		// remove out of screen bullets
 		if(BounceBox::is_inside_rect(o, &bounds)==false)
 		{
-			o->Removed = true;
+			o->remove();
 		}
 	}
 	// try move tanks
@@ -294,7 +304,7 @@ void World::think()
 	for(unsigned int i=0;i<_objs.size();i++)
 	{
 		// select bullets
-		if(_objs[i]->Removed || _objs[i]->type() != OBJ_BULLET)
+		if(_objs[i]->is_removed() || _objs[i]->type() != OBJ_BULLET)
 			continue;
 		Bullet *b = (Bullet *)_objs[i];
 
@@ -307,7 +317,7 @@ void World::think()
 
 			Object *o = _objs[j];
 			// skip removed
-			if(o->Removed)
+			if(o->is_removed())
 				continue;
 			// check with: tanks, bullets, walls, TODO flag
 			if(o->type() != OBJ_TANK && o->type() != OBJ_BULLET && o->type() != OBJ_WALL)
@@ -317,7 +327,7 @@ void World::think()
 			{
 				b->hit(o);
 				// if bullet removed by hit - skip other checks
-				if(b->Removed)
+				if(b->is_removed())
 					break;
 			}
 		}
@@ -332,7 +342,7 @@ void World::think()
 	// Remove pending objects
 	for(unsigned int i=0;i<_objs.size();i++)
 	{
-		if(_objs[i]->Removed)
+		if(_objs[i]->is_removed())
 		{
 			delete _objs[i];
 			_objs.erase(_objs.begin() + i);
@@ -345,6 +355,19 @@ void World::think()
 void World::add_explode(int x, int y)
 {
 	_objs.push_back(new Explode(this, x, y));
+}
+
+void World::add_explode_area(SDL_Rect box, int count)
+{
+	int delay = 0;
+	for(int i=0;i<count; i++)
+	{
+		int x = box.x - 16 + (rand() % box.w);
+		int y = box.y - 16 + rand() % box.h;
+	
+		add_object_delay(new Explode(this, x, y), delay);
+		delay += 200 + rand() % 100;
+	}
 }
 
 void World::show_bb(SDL_Surface *s)
