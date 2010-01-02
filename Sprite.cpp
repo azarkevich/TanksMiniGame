@@ -6,6 +6,7 @@ Sprite::Sprite()
 	_current_frame = 0;
 	_next_time = 0;
 	Duration = 0;
+	AutoReset = false;
 }
 
 void Sprite::think()
@@ -21,8 +22,16 @@ void Sprite::think()
 		{
 			if(_state == SPRITE_PLAY_ONCE)
 			{
-				_current_frame = frames.size();
-				_state = SPRITE_DONE;
+				if(AutoReset)
+				{
+					_state = SPRITE_STOP;
+					_current_frame = 0;
+				}
+				else
+				{
+					_state = SPRITE_DONE;
+					_current_frame = frames.size();
+				}
 				return;
 			}
 			else if(_state == SPRITE_PLAY_CYCLE)

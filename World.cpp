@@ -7,6 +7,7 @@
 #include "Bullet.h"
 #include "Tank.h"
 #include "Flag.h"
+#include "Gun.h"
 
 Uint32 WorldTime::now;
 
@@ -56,6 +57,12 @@ void World::load_level(const char* level)
 			break;
 		case 'w':
 			_objs.push_back(new Wall(this, x, y));
+			break;
+		case 'g':
+			_objs.push_back(new Gun(this, x, y, ORIENT_UP, 5, 1000));
+			break;
+		case 'G':
+			_objs.push_back(new Gun(this, x, y, ORIENT_DOWN, 5, 1000));
 			break;
 		case 'b':
 			_objs.push_back(new Bush(x, y));
@@ -186,8 +193,9 @@ bool World::is_possible_position(Object *self)
 		// Not compare with self
 		if(o == self)
 			continue;
-		// compare only wth: tanks, walls, TODO flag
-		if(o->type() != OBJ_TANK && o->type() != OBJ_WALL)
+		// compare only wth: tanks, walls, flag, guns
+		int type = o->type();
+		if(type != OBJ_TANK && type != OBJ_WALL && type != OBJ_FLAG && type != OBJ_GUN)
 			continue;
 		if(BounceBox::is_intersect(o, self))
 		{
@@ -274,7 +282,10 @@ void World::think()
 	{
 		if(add_queue[i].first <= WorldTime::now)
 		{
-			add_object(add_queue[i].second);
+			Object *o = add_queue[i].second;
+			if(o->move_info != NULL)
+				o->move_info->_last_calc = WorldTime::now;
+			add_object(o);
 			add_queue.erase(add_queue.begin() + i);
 			i--;
 		}
@@ -324,7 +335,7 @@ void World::think()
 				continue;
 			// check with: tanks, bullets, walls, flag
 			int type = o->type();
-			if(type != OBJ_TANK && type != OBJ_BULLET && type != OBJ_WALL && type != OBJ_FLAG)
+			if(type != OBJ_TANK && type != OBJ_BULLET && type != OBJ_WALL && type != OBJ_FLAG && type != OBJ_GUN)
 				continue;
 
 			if(BounceBox::is_intersect(b, o))
@@ -397,7 +408,7 @@ void World::draw(SDL_Surface *s)
 	{
 		Object *o = _objs[i];
 		int type = o->type();
-		if(type == OBJ_WALL || type == OBJ_BULLET || type == OBJ_TANK || type == OBJ_FLAG)
+		if(type == OBJ_WALL || type == OBJ_BULLET || type == OBJ_TANK || type == OBJ_FLAG || type == OBJ_GUN)
 			o->draw(s);
 	}
 

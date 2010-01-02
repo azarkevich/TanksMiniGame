@@ -112,8 +112,8 @@ w   tThH  b   www  w\n\
 w             www  w\n\
 w      bb     www  w\n\
 w      bb          w\n\
-w                  w\n\
-wt b   b           w\n\
+w         g        w\n\
+wt b   b    G      w\n\
 w       www        w\n\
 wp      wfw        w\n\
 wwwwwwwwwwwwwwwwwwww");

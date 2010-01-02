@@ -15,6 +15,7 @@ class Sprite
 	int _state;
 	bool _cycle;
 public:
+	bool AutoReset;
 	vector<SDL_Surface *> frames;
 	int Duration;
 
@@ -31,7 +32,7 @@ public:
 
 	void load(const vector<SDL_Surface *> &v, const char *file);
 
-	void start()
+	void begin()
 	{
 		_current_frame = 0;
 		_state = SPRITE_STOP;

@@ -11,6 +11,7 @@
 #define OBJ_EXPLODE 3
 #define OBJ_BUSH 4
 #define OBJ_FLAG 5
+#define OBJ_GUN 6
 
 class WorldTime
 {
