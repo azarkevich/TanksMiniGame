@@ -8,32 +8,17 @@ class World;
 class Bullet : public Object
 {
 	World *_world;
+	Object *emiter;
+	int hit_delay;
 public:
-	Bullet(World *w, int orient);
+	// armoured bullet not destroy until Armour == 0
+	int Armour;
 
-	void set_emission_point(int x, int y);
+	Bullet(World *w, int orient, int x, int y, Object *emiter);
 
-	virtual void draw(SDL_Surface *s, int level)
-	{
-		if(level != 0)
-			return;
-		sprite->draw(s, X, Y);
-	}
-
-	virtual void think()
-	{
-		sprite->think();
-	}
-
-	virtual int type()
-	{
-		return OBJ_BULLET;
-	}
-
-	virtual bool wait_weapon_hit()
-	{
-		return true;
-	}
-
-	virtual void weapon_hit(Object *o);
+	virtual void draw(SDL_Surface *s);
+	virtual void think();
+	virtual int type();
+	virtual bool hit_by(Bullet *b);
+	void hit(Object *o);
 };

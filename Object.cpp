@@ -13,3 +13,8 @@ Object::~Object()
 	if(sprite != NULL)
 		delete sprite;
 }
+
+bool Object::hit_by(Bullet *b)
+{
+	return false;
+}

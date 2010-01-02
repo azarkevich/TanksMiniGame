@@ -100,12 +100,12 @@ int main(int argc, char **argv)
 	w.tiles = load_sprites("resources/sprites.bmp", 32, 32, 1, 1, 0, 0, 0);
 	w.load_level("\
 wwwwwwwwwwwwwwwwwwww\n\
-w t  t  t  t  t  t w\n\
-w    ww wwww       w\n\
-w          w       w\n\
+wtt  t  t  t  t  t w\n\
+wtT  ww wwww       w\n\
+wtT        w       w\n\
 w       b  wwww    w\n\
 w             www  w\n\
-w         b   www  w\n\
+w   tThH  b   www  w\n\
 w             www  w\n\
 w      bb     www  w\n\
 w      bb          w\n\

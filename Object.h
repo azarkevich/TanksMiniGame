@@ -4,6 +4,8 @@
 #include "BounceBox.h"
 #include "Sprite.h"
 
+class Bullet;
+
 class Object
 {
 public:
@@ -16,20 +18,11 @@ public:
 	Object();
 	virtual ~Object();
 
-	virtual void draw(SDL_Surface *s, int level) = 0;
+	virtual void draw(SDL_Surface *s) = 0;
 	
-	virtual void think()
-	{
-	};
+	virtual void think() { };
 
 	virtual int type() = 0;
 
-	virtual bool wait_weapon_hit()
-	{
-		return false;
-	}
-
-	virtual void weapon_hit(Object *o)
-	{
-	}
+	virtual bool hit_by(Bullet *o);
 };

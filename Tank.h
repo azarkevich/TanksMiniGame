@@ -1,59 +1,26 @@
 #pragma once
 
 #include "Object.h"
+#include "Bullet.h"
 
 class World;
 
 class Tank : public Object
 {
 	World *_world;
-	Sprite *orients[4];
-	int _orient;
+	Sprite *_orients[4];
+	BounceBox _orients_bb[4];
 public:
-	Tank(World *w, int x, int y);
-	~Tank();
+	int InitialArmour;
+	int Armour;
+	int Orient;
+	Tank(World *w, int x, int y, int armo);
 
-	virtual void draw(SDL_Surface *s, int level)
-	{
-		if(level != 0)
-			return;
-		sprite->draw(s, X, Y);
-	}
-
-	virtual void think()
-	{
-		sprite->think();
-	}
-
-	virtual int type()
-	{
-		return OBJ_TANK;
-	}
-
-	void move_to(int orient)
-	{
-		if(move_info != NULL)
-		{
-			delete move_info;
-			move_info = NULL;
-		}
-		move_info = new MoveInfo(32, orient);
-
-		_orient = orient;
-
-		sprite = orients[orient];
-		sprite->play(true);
-	}
-
-	void stop()
-	{
-		sprite->set_state(SPRITE_STOP);
-		if(move_info != NULL)
-		{
-			delete move_info;
-			move_info = NULL;
-		}
-	}
-
+	virtual void draw(SDL_Surface *s);
+	virtual void think();
+	virtual int type();
+	virtual bool hit_by(Bullet *b);
+	void move_to(int orient);
+	void stop();
 	void fire();
 };

@@ -12,11 +12,10 @@ class World
 	bool _pause;
 	Uint32 _world_time_diff;
 	int _show_bb;
-	vector<Bullet *> _bullets;
-	vector<Wall *> _walls;
-	vector<Bush *> _bushes;
-	vector<Explode *> _explodes;
-	vector<Tank *> _tanks;
+//	vector<Wall *> _walls;
+//	vector<Bush *> _bushes;
+//	vector<Explode *> _explodes;
+//	vector<Tank *> _tanks;
 	vector<Object *> _objs;
 	Tank *_player;
 
@@ -26,6 +25,7 @@ class World
 	void try_move_tank(Tank *t);
 	template<typename T>
 		void handle_removed(vector<T *> &v);
+	bool is_possible_position(Object *o);
 public:
 	SDL_Rect bounds;
 
@@ -39,10 +39,9 @@ public:
 	void pause(bool set);
 	void add_explode(int x, int y);
 	
-	void add_bullet(Bullet *b)
+	void add_object(Object *o)
 	{
-		_bullets.push_back(b);
-		_objs.push_back(b);
+		_objs.push_back(o);
 	}
 
 	void handle_input(const SDL_Event &ev);

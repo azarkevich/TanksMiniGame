@@ -3,6 +3,7 @@
 #include "Object.h"
 #include "Wall.h"
 #include "World.h"
+#include "Bullet.h"
 
 Wall::Wall(World *w, int x, int y)
 {
@@ -18,28 +19,23 @@ Wall::~Wall()
 {
 }
 
-void Wall::draw(SDL_Surface *s, int level)
+void Wall::draw(SDL_Surface *s)
 {
-	if(level != 0)
-		return;
 	sprite->draw(s, X, Y);
 }
 
-void Wall::weapon_hit(Object *o)
+bool Wall::hit_by(Bullet *b)
 {
-	_world->add_explode(o->X, o->Y);
+	_world->add_explode(b->X + rand() % 2 - 1, b->Y + rand() % 2 - 1);
 	if(sprite->get_state() == SPRITE_STOP)
 		sprite->play(false);
+
+	return true;
 }
 
 int Wall::type()
 {
 	return OBJ_WALL;
-}
-
-bool Wall::wait_weapon_hit()
-{
-	return true;
 }
 
 void Wall::think()

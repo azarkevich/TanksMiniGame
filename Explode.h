@@ -10,10 +10,8 @@ public:
 	Explode(World *w, int x, int y);
 	~Explode();
 
-	virtual void draw(SDL_Surface *s, int level)
+	virtual void draw(SDL_Surface *s)
 	{
-		if(level != 1)
-			return;
 		sprite->draw(s, X, Y);
 	}
 

@@ -10,10 +10,8 @@ public:
 	Bush(World *w, int x, int y);
 	~Bush();
 
-	virtual void draw(SDL_Surface *s, int level)
+	virtual void draw(SDL_Surface *s)
 	{
-		if(level != 2)
-			return;
 		sprite->draw(s, X, Y);
 	}
 

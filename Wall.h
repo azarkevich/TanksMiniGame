@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Bullet.h"
+
 class World;
 
 class Wall : public Object
@@ -9,11 +11,10 @@ public:
 	Wall(World *w, int x, int y);
 	~Wall();
 
-	virtual void draw(SDL_Surface *s, int level);
+	virtual void draw(SDL_Surface *s);
 	virtual void think();
 
 	virtual int type();
-	virtual bool wait_weapon_hit();
 
-	virtual void weapon_hit(Object *o);
+	virtual bool hit_by(Bullet *b);
 };

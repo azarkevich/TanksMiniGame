@@ -2,9 +2,15 @@
 #include "Bullet.h"
 #include "World.h"
 
-Bullet::Bullet(World *w, int orient)
+Bullet::Bullet(World *w, int orient, int x, int y, Object *e)
 {
 	_world = w;
+	// convert emit point
+	X = x - 16;
+	Y = y - 16;
+
+	this->emiter = e;
+
 	BBox = BounceBox(12, 12, 8, 8);
 
 	sprite = new Sprite();
@@ -28,18 +34,56 @@ Bullet::Bullet(World *w, int orient)
 	sprite->play(true);
 
 	move_info = new MoveInfo(128, orient);
+
+	Armour = 0;
+	hit_delay = 0;
 }
 
-void Bullet::set_emission_point(int x, int y)
+int Bullet::type()
 {
-	X = x;
-	Y = y;
+	return OBJ_BULLET;
 }
 
-void Bullet::weapon_hit(Object *o)
+void Bullet::hit(Object *o)
 {
-	_world->add_explode(o->X, o->Y);
+	// Not interact with emiter. Problem in emission moment: bullet immediate hit self emitter. So need emit bullet wery carefully
+	// but this is boring.
+	if(o == emiter || hit_delay > 0)
+		return;
+
+	if(o->hit_by(this))
+	{
+		if(Armour == 0)
+		{
+			//_world->add_explode(X, Y);
+			Removed = true;
+		}
+		else
+		{
+			Armour--;
+			hit_delay = 7;
+		}
+	}
+}
+
+bool Bullet::hit_by(Bullet *b)
+{
+	// Destroy self with explode
 	_world->add_explode(X, Y);
 	Removed = true;
+
+	// report about interaction
+	return true;
 }
 
+void Bullet::draw(SDL_Surface *s)
+{
+	sprite->draw(s, X, Y);
+}
+
+void Bullet::think()
+{
+	sprite->think();
+	if(hit_delay > 0)
+		hit_delay--;
+}

@@ -56,19 +56,25 @@ void World::load_level(const char* level)
 		case ' ':
 			break;
 		case 'w':
-			_walls.push_back(new Wall(this, x, y));
-			_objs.push_back(_walls.back());
+			_objs.push_back(new Wall(this, x, y));
 			break;
 		case 'b':
-			_bushes.push_back(new Bush(this, x, y));
-			_objs.push_back(_bushes.back());
+			_objs.push_back(new Bush(this, x, y));
 			break;
 		case 't':
-			_tanks.push_back(new Tank(this, x, y));
-			_objs.push_back(_tanks.back());
+			_objs.push_back(new Tank(this, x, y, 2));
+			break;
+		case 'T':
+			_objs.push_back(new Tank(this, x, y, 3));
+			break;
+		case 'h':
+			_objs.push_back(new Tank(this, x, y, 4));
+			break;
+		case 'H':
+			_objs.push_back(new Tank(this, x, y, 5));
 			break;
 		case 'p':
-			_player = new Tank(this, x, y);
+			_player = new Tank(this, x, y, 5);
 			_objs.push_back(_player);
 			break;
 		}
@@ -81,10 +87,6 @@ void World::handle_input(const SDL_Event &ev)
 {
 	if(ev.type == SDL_KEYDOWN)
 	{
-		if(ev.key.keysym.sym == SDLK_SPACE)
-		{
-			_player->fire();
-		}
 		if(ev.key.keysym.sym == SDLK_RETURN)
 		{
 			_show_bb = (_show_bb + 1) % 3;
@@ -93,25 +95,43 @@ void World::handle_input(const SDL_Event &ev)
 		{
 			pause(!_pause);
 		}
-		if(ev.key.keysym.sym == SDLK_UP)
+		if(_pause)
+			return;
+		if(ev.key.keysym.sym == SDLK_SPACE)
 		{
-			_player->move_to(ORIENT_UP);
+			_player->fire();
 		}
-		if(ev.key.keysym.sym == SDLK_DOWN)
+		if(ev.key.keysym.sym == SDLK_UP || ev.key.keysym.sym == SDLK_DOWN || ev.key.keysym.sym == SDLK_LEFT || ev.key.keysym.sym == SDLK_RIGHT)
 		{
-			_player->move_to(ORIENT_DOWN);
-		}
-		if(ev.key.keysym.sym == SDLK_LEFT)
-		{
-			_player->move_to(ORIENT_LEFT);
-		}
-		if(ev.key.keysym.sym == SDLK_RIGHT)
-		{
-			_player->move_to(ORIENT_RIGHT);
+			int old_orient = _player->Orient;
+			if(ev.key.keysym.sym == SDLK_UP)
+			{
+				_player->move_to(ORIENT_UP);
+			}
+			if(ev.key.keysym.sym == SDLK_DOWN)
+			{
+				_player->move_to(ORIENT_DOWN);
+			}
+			if(ev.key.keysym.sym == SDLK_LEFT)
+			{
+				_player->move_to(ORIENT_LEFT);
+			}
+			if(ev.key.keysym.sym == SDLK_RIGHT)
+			{
+				_player->move_to(ORIENT_RIGHT);
+			}
+
+			if(is_possible_position(_player) == false)
+			{
+				_player->move_to(old_orient);
+				_player->stop();
+			}
 		}
 	}
 	if(ev.type == SDL_KEYUP)
 	{
+		if(_pause)
+			return;
 		if(ev.key.keysym.sym == SDLK_UP || ev.key.keysym.sym == SDLK_DOWN || ev.key.keysym.sym == SDLK_LEFT || ev.key.keysym.sym == SDLK_RIGHT)
 		{
 			//tank->stop();
@@ -155,29 +175,75 @@ void World::move_obj(Object *o)
 	}
 }
 
+bool World::is_possible_position(Object *self)
+{
+	for(unsigned int i=0;i<_objs.size();i++)
+	{
+		Object *o = _objs[i];
+		// Not compare with self
+		if(o == self)
+			continue;
+		// compare only wth: tanks, walls, TODO flag
+		if(o->type() != OBJ_TANK && o->type() != OBJ_WALL)
+			continue;
+		if(BounceBox::is_intersect(o, self))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 void World::try_move_tank(Tank *t)
 {
-	//int x = t->X;
-	//int y = t->Y;
+	int old_x = t->X;
+	int old_y = t->Y;
 	move_obj(t);
+
+	if(is_possible_position(t) == false)
+	{
+		t->X = old_x;
+		t->Y = old_y;
+		t->stop();
+	}
+
 	// not allow going out of screen:
 	BounceBox bb = t->BBox;
 	bb.x += t->X;
 	bb.y += t->Y;
 	// left
 	if(bb.x < bounds.x)
+	{
 		t->X += (bounds.x - bb.x);
+		t->stop();
+	}
 	// top
 	if(bb.y < bounds.y)
+	{
 		t->Y += (bounds.y - bb.y);
+		t->stop();
+	}
 	// right
 	int screen_right = bounds.w - bounds.x;
-	if((bb.x + bb.w) > screen_right)
-		t->X -= (screen_right - (bb.x + bb.w));
+	int bb_right = bb.x + bb.w;
+	if(bb_right > screen_right)
+	{
+		int diff = bb_right - screen_right;
+		t->X -= diff;
+		bb_right -= diff;
+		t->stop();
+	}
 	// down
 	int screen_down = bounds.h - bounds.y;
-	if((bb.y + bb.h) > screen_down)
-		t->Y -= (screen_down - (bb.y + bb.h));
+	int bb_down = bb.y + bb.h;
+	if(bb_down > screen_down)
+	{
+		int diff = bb_down - screen_down;
+		t->Y -= diff;
+		bb_down -= diff;
+		t->stop();
+	}
+
 }
 
 template<typename T>
@@ -187,7 +253,6 @@ void World::handle_removed(vector<T *> &v)
 	{
 		if(v[i]->Removed)
 		{
-			delete v[i];
 			v.erase(v.begin() + i);
 			i--;
 		}
@@ -202,50 +267,60 @@ void World::think()
 	WorldTime::now = SDL_GetTicks() - _world_time_diff;
 
 	// Move bullets
-	for(unsigned int i=0;i<_bullets.size();i++)
+	for(unsigned int i=0;i<_objs.size();i++)
 	{
-		move_obj(_bullets[i]);
+		Object *o = _objs[i];
+		if(o->type() != OBJ_BULLET)
+			continue;
+
+		move_obj(o);
 		// remove out of screen bullets
-		if(BounceBox::is_inside_rect(_bullets[i], &bounds)==false)
+		if(BounceBox::is_inside_rect(o, &bounds)==false)
 		{
-			_bullets[i]->Removed = true;
+			o->Removed = true;
 		}
 	}
-	//  try move tanks
-	for(unsigned int i=0;i<_tanks.size();i++)
+	// try move tanks
+	for(unsigned int i=0;i<_objs.size();i++)
 	{
-		try_move_tank(_tanks[i]);
+		Object *o = _objs[i];
+		if(o->type() != OBJ_TANK)
+			continue;
+
+		try_move_tank((Tank *)o);
 	}
-	// and player
-	try_move_tank(_player);
 
 	// Bullet collisions with tanks and walls
-	for(unsigned int i=0;i<_bullets.size();i++)
+	for(unsigned int i=0;i<_objs.size();i++)
 	{
-		Bullet *b = _bullets[i];
-		if(b->Removed)
+		// select bullets
+		if(_objs[i]->Removed || _objs[i]->type() != OBJ_BULLET)
 			continue;
-/*
-		for(unsigned int j=0;j<env.size();j++)
+		Bullet *b = (Bullet *)_objs[i];
+
+		// compare with other objects
+		for(unsigned int j=0;j<_objs.size();j++)
 		{
+			// self to self deny
 			if(i == j)
 				continue;
 
-			Object *o2 = env[j];
-			if(o2->wait_weapon_hit() == false)
+			Object *o = _objs[j];
+			// skip removed
+			if(o->Removed)
+				continue;
+			// check with: tanks, bullets, walls, TODO flag
+			if(o->type() != OBJ_TANK && o->type() != OBJ_BULLET && o->type() != OBJ_WALL)
 				continue;
 
-			if(BounceBox::is_intersect(o1, o2))
+			if(BounceBox::is_intersect(b, o))
 			{
-				o2->weapon_hit(o1);
-
-				delete o1;
-				env.erase(env.begin() + i);
-				i--;
-				break;
+				b->hit(o);
+				// if bullet removed by hit - skip other checks
+				if(b->Removed)
+					break;
 			}
 		}
-*/
 	}
 	
 	// think
@@ -255,25 +330,21 @@ void World::think()
 	}
 	
 	// Remove pending objects
-	handle_removed(_bullets);
-	handle_removed(_tanks);
-	handle_removed(_explodes);
-	handle_removed(_walls);
-	handle_removed(_bushes);
 	for(unsigned int i=0;i<_objs.size();i++)
 	{
 		if(_objs[i]->Removed)
 		{
+			delete _objs[i];
 			_objs.erase(_objs.begin() + i);
 			i--;
 		}
 	}
+//	cout << _objs.size() << endl;
 }
 
 void World::add_explode(int x, int y)
 {
-	_explodes.push_back(new Explode(this, x, y));
-	_objs.push_back(_explodes.back());
+	_objs.push_back(new Explode(this, x, y));
 }
 
 void World::show_bb(SDL_Surface *s)
@@ -295,33 +366,25 @@ void World::draw(SDL_Surface *s)
 	if(_show_bb == 1)
 		show_bb(s);
 
-//	for_each(_walls.begin(), _walls.end(),
-//			mem_fun_ptr(Object::draw));
-
-	for(unsigned int i = 0;i<_walls.size();i++)
+	for(unsigned int i = 0;i<_objs.size();i++)
 	{
-		_walls[i]->draw(s, 0);
+		Object *o = _objs[i];
+		if(o->type() == OBJ_WALL || o->type() == OBJ_BULLET || o->type() == OBJ_TANK)
+			o->draw(s);
 	}
 
-	for(unsigned int i = 0;i<_bullets.size();i++)
+	for(unsigned int i = 0;i<_objs.size();i++)
 	{
-		_bullets[i]->draw(s, 0);
+		Object *o = _objs[i];
+		if(o->type() == OBJ_EXPLODE)
+			o->draw(s);
 	}
 
-	for(unsigned int i = 0;i<_tanks.size();i++)
+	for(unsigned int i = 0;i<_objs.size();i++)
 	{
-		_tanks[i]->draw(s, 0);
-	}
-	_player->draw(s, 0);
-
-	for(unsigned int i = 0;i<_explodes.size();i++)
-	{
-		_explodes[i]->draw(s, 0);
-	}
-
-	for(unsigned int i = 0;i<_bushes.size();i++)
-	{
-		_bushes[i]->draw(s, 0);
+		Object *o = _objs[i];
+		if(o->type() == OBJ_BUSH)
+			o->draw(s);
 	}
 
 	if(_show_bb == 2)
