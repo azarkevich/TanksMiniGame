@@ -20,6 +20,7 @@ class World
 	int _show_bb;
 	vector< pair<Uint32, Object *> > add_queue;
 	vector<Object *> _objs;
+	vector< vector<Object *> > env_map;
 	Tank *_player;
 
 	void move_obj(Object *o);
@@ -33,14 +34,13 @@ class World
 	int lives;
 	SDL_Surface *mode_image[5];
     
-    SDL_Surface* load_image(const char *file);
-    
     void load_level(const char* level);
     const char *level;
     
     Flag *player_flag;
     Flag *enimy_flag;
 public:
+	bool EnvMapChanged;
 	SDL_Rect bounds;
 
 	World(int w, int h);

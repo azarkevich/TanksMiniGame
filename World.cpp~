@@ -72,6 +72,8 @@ void World::load_level(const char* level)
 		exit(1);
 	}
 	
+	EnvMap.clear();
+	
 	while(ifs.eof() == false)
 	{
 		char l[256];
@@ -79,29 +81,37 @@ void World::load_level(const char* level)
 		
 		x = 0;
 
+		vector<Object *> map;
 		for(unsigned int i=0;i<strlen(l);i++)
 		{
+			Object *map_element = NULL;
 			switch(l[i])
 			{
 			case ' ':
 				break;
 			case 'w':
-				_objs.push_back(new Wall(this, x, y, WALL_A));
+				map_element = new Wall(this, x, y, WALL_A);
+				_objs.push_back(map_element);
 				break;
 			case 'W':
-				_objs.push_back(new Wall(this, x, y, WALL_B));
+				map_element = new Wall(this, x, y, WALL_B);
+				_objs.push_back(map_element);
 				break;
 			case 'c':
-				_objs.push_back(new Wall(this, x, y, WALL_CONCRETE_A));
+				map_element = new Wall(this, x, y, WALL_CONCRETE_A);
+				_objs.push_back(map_element);
 				break;
 			case 'C':
-				_objs.push_back(new Wall(this, x, y, WALL_CONCRETE_B));
+				map_element = new Wall(this, x, y, WALL_CONCRETE_B);
+				_objs.push_back(map_element);
 				break;
 			case 'g':
-				_objs.push_back(new Gun(this, x, y, ORIENT_UP, 5, 1000));
+				map_element = new Gun(this, x, y, ORIENT_UP, 5, 1000);
+				_objs.push_back(map_element);
 				break;
 			case 'G':
-				_objs.push_back(new Gun(this, x, y, ORIENT_DOWN, 5, 1000));
+				map_element = new Gun(this, x, y, ORIENT_DOWN, 5, 1000);
+				_objs.push_back(map_element);
 				break;
 			case 'b':
 				_objs.push_back(new Bush(x, y));
@@ -119,34 +129,49 @@ void World::load_level(const char* level)
 				_objs.push_back(new Tank(this, TANK_ENIMY, x, y, 5));
 				break;
 			case 's':
-				_objs.push_back(new Bonus(x, y, BONUS_SUPER_BULLET));
+				map_element = new Bonus(x, y, BONUS_SUPER_BULLET);
+				_objs.push_back(map_element);
 				break;
 			case '>':
-				_objs.push_back(new Bonus(x, y, BONUS_SUPER_SPEED));
+				map_element = new Bonus(x, y, BONUS_SPEED);
+				_objs.push_back(map_element);
 				break;
 			case '+':
-				_objs.push_back(new Bonus(x, y, BONUS_HEAL));
+				map_element = new Bonus(x, y, BONUS_HEAL);
+				_objs.push_back(map_element);
 				break;
 			case 'p':
 				player_start_x = x;
 				player_start_y = y;
 				break;
 			case 'F':
-				enimy_flag = new Flag(this, x, y);
+				map_element = enimy_flag = new Flag(this, x, y);
 				_objs.push_back(enimy_flag);
 				break;
 			case 'f':
-				player_flag = new Flag(this, x, y);
+				map_element = player_flag = new Flag(this, x, y);
 				_objs.push_back(player_flag);
 				break;
 			}
+			
+			map.push_back(map_element);
+			
 			x += 32;
 		}
+		
+		EnvMap.push_back(map);
 
 		y += 32;
 		width = std::max(width, x);
 	}
 	height = y;
+	bounds.w = width;
+	bounds.h = height;
+	
+	for(unsigned int i=0;i<EnvMap.size();i++)
+	{
+		EnvMap[i].resize(width/32);
+	}
 }
 
 void World::handle_input(const SDL_Event &ev)
@@ -341,7 +366,10 @@ void World::think()
 	
 	if(game_mode == GAME_MODE_START)
 	{
-		// TODO: delete
+		for(unsigned int i = 0;i<_objs.size();i++)
+		{
+			delete _objs[i];
+		}
 		_objs.clear();
 		player_flag = NULL;
 		enimy_flag = NULL;
@@ -351,6 +379,7 @@ void World::think()
 		lives = 1;
 		load_level(level);
 		game_mode = GAME_MODE_PLAY;
+		EnvMapChanged = true;
 		return;
 	}
 
@@ -464,6 +493,8 @@ void World::think()
 	{
 		_objs[i]->think();
 	}
+	// strategy calculated.
+	EnvMapChanged = false;
 	
     // Check game state
 	if(game_mode == GAME_MODE_PLAY)
@@ -497,8 +528,22 @@ void World::think()
 		if(game_mode != GAME_MODE_PLAY && _player != NULL)
 			_player->stop();
     }
+	
+	// Remove pending objects from map
+	for(unsigned int i=0;i<EnvMap.size();i++)
+	{
+		vector<Object *> &v = EnvMap[i];
+		for(unsigned int j=0;j<v.size();j++)
+		{
+			if(v[j]->is_remove_pending())
+			{
+				v[j] = NULL;
+				EnvMapChanged = true;
+			}
+		}
+	}
 
-    // Remove pending objects
+    // Remove removed objects
 	for(unsigned int i=0;i<_objs.size();i++)
 	{
 		if(_objs[i]->is_removed())

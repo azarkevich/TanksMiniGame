@@ -39,6 +39,8 @@ class World
     Flag *player_flag;
     Flag *enimy_flag;
 public:
+	vector< vector<Object *> > EnvMap;
+	bool EnvMapChanged;
 	SDL_Rect bounds;
 
 	World(int w, int h);
