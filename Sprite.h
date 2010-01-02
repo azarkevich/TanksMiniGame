@@ -31,6 +31,13 @@ public:
 
 	void load(const vector<SDL_Surface *> &v, const char *file);
 
+	void start()
+	{
+		_current_frame = 0;
+		_state = SPRITE_STOP;
+		_cycle = false;
+	}
+
 	bool next()
 	{
 		if(_current_frame == frames.size())

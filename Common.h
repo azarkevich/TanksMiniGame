@@ -10,6 +10,7 @@
 #define OBJ_TANK 2
 #define OBJ_EXPLODE 3
 #define OBJ_BUSH 4
+#define OBJ_FLAG 5
 
 class WorldTime
 {

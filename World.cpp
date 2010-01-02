@@ -6,6 +6,7 @@
 #include "Bush.h"
 #include "Bullet.h"
 #include "Tank.h"
+#include "Flag.h"
 
 Uint32 WorldTime::now;
 
@@ -74,6 +75,10 @@ void World::load_level(const char* level)
 		case 'p':
 			_player = new Tank(this, x, y, 5);
 			_objs.push_back(_player);
+			break;
+		case 'F':
+		case 'f':
+			_objs.push_back(new Flag(this, x, y));
 			break;
 		}
 		x += 33;
@@ -317,8 +322,9 @@ void World::think()
 			// skip removed
 			if(o->is_removed())
 				continue;
-			// check with: tanks, bullets, walls, TODO flag
-			if(o->type() != OBJ_TANK && o->type() != OBJ_BULLET && o->type() != OBJ_WALL)
+			// check with: tanks, bullets, walls, flag
+			int type = o->type();
+			if(type != OBJ_TANK && type != OBJ_BULLET && type != OBJ_WALL && type != OBJ_FLAG)
 				continue;
 
 			if(BounceBox::is_intersect(b, o))
@@ -390,7 +396,8 @@ void World::draw(SDL_Surface *s)
 	for(unsigned int i = 0;i<_objs.size();i++)
 	{
 		Object *o = _objs[i];
-		if(o->type() == OBJ_WALL || o->type() == OBJ_BULLET || o->type() == OBJ_TANK)
+		int type = o->type();
+		if(type == OBJ_WALL || type == OBJ_BULLET || type == OBJ_TANK || type == OBJ_FLAG)
 			o->draw(s);
 	}
 

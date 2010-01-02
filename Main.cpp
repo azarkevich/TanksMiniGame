@@ -103,8 +103,8 @@ int main(int argc, char **argv)
 	World w(screen->w, screen->h);
 	w.load_level("\
 wwwwwwwwwwwwwwwwwwww\n\
-wtt  t  t  t  t  t w\n\
-wtT  ww wwww       w\n\
+wtt  t  t  t  t wtFw\n\
+wtT  ww wwww    wwww\n\
 wtT        w       w\n\
 w       b  wwww    w\n\
 w             www  w\n\
@@ -114,8 +114,8 @@ w      bb     www  w\n\
 w      bb          w\n\
 w                  w\n\
 wt b   b           w\n\
-w                  w\n\
-wp                 w\n\
+w       www        w\n\
+wp      wfw        w\n\
 wwwwwwwwwwwwwwwwwwww");
 	
 	SDL_Event ev;
