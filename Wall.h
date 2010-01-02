@@ -6,7 +6,7 @@ class Wall : public Object
 {
 	World *_world;
 public:
-	Wall(World *w);
+	Wall(World *w, int x, int y);
 	~Wall();
 
 	virtual void draw(SDL_Surface *s, int level);

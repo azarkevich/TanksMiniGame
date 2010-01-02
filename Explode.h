@@ -7,7 +7,7 @@ class World;
 class Explode : public Object
 {
 public:
-	Explode(World *w);
+	Explode(World *w, int x, int y);
 	~Explode();
 
 	virtual void draw(SDL_Surface *s, int level)

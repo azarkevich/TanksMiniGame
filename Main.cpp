@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 	w.tiles = load_sprites("resources/sprites.bmp", 32, 32, 1, 1, 0, 0, 0);
 	w.load_level("\
 wwwwwwwwwwwwwwwwwwww\n\
-w                  w\n\
+w t  t  t  t  t  t w\n\
 w    ww wwww       w\n\
 w          w       w\n\
 w       b  wwww    w\n\
@@ -112,7 +112,7 @@ w      bb          w\n\
 w                  w\n\
 w  b   b           w\n\
 w                  w\n\
-wt                 w\n\
+wp                 w\n\
 wwwwwwwwwwwwwwwwwwww");
 	
 	SDL_Event ev;

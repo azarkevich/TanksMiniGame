@@ -11,6 +11,8 @@ class Bullet : public Object
 public:
 	Bullet(World *w, int orient);
 
+	void set_emission_point(int x, int y);
+
 	virtual void draw(SDL_Surface *s, int level)
 	{
 		if(level != 0)

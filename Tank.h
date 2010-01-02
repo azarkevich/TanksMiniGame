@@ -10,7 +10,7 @@ class Tank : public Object
 	Sprite *orients[4];
 	int _orient;
 public:
-	Tank(World *w);
+	Tank(World *w, int x, int y);
 	~Tank();
 
 	virtual void draw(SDL_Surface *s, int level)

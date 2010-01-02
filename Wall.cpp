@@ -4,12 +4,14 @@
 #include "Wall.h"
 #include "World.h"
 
-Wall::Wall(World *w)
+Wall::Wall(World *w, int x, int y)
 {
 	_world = w;
 	sprite = new Sprite();
 	sprite->load(w->tiles, "resources/wall.sprite");
 	BBox = BounceBox(0, 0, 32, 32);
+	X = x;
+	Y = y;
 }
 
 Wall::~Wall()

@@ -7,7 +7,7 @@ class World;
 class Bush : public Object
 {
 public:
-	Bush(World *w);
+	Bush(World *w, int x, int y);
 	~Bush();
 
 	virtual void draw(SDL_Surface *s, int level)

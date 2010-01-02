@@ -30,6 +30,12 @@ Bullet::Bullet(World *w, int orient)
 	move_info = new MoveInfo(128, orient);
 }
 
+void Bullet::set_emission_point(int x, int y)
+{
+	X = x;
+	Y = y;
+}
+
 void Bullet::weapon_hit(Object *o)
 {
 	_world->add_explode(o->X, o->Y);
