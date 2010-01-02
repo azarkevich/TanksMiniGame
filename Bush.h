@@ -2,13 +2,10 @@
 
 #include "Object.h"
 
-class World;
-
 class Bush : public Object
 {
 public:
-	Bush(World *w, int x, int y);
-	~Bush();
+	Bush(int x, int y);
 
 	virtual void draw(SDL_Surface *s)
 	{

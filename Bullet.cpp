@@ -16,19 +16,19 @@ Bullet::Bullet(World *w, int orient, int x, int y, Object *e)
 	sprite = new Sprite();
 	if(orient == ORIENT_UP)
 	{
-		sprite->load(w->tiles, "resources/bullet-up.sprite");
+		sprite->load(TilesCache::main, "resources/bullet-up.sprite");
 	}
 	else if(orient == ORIENT_DOWN)
 	{
-		sprite->load(w->tiles, "resources/bullet-down.sprite");
+		sprite->load(TilesCache::main, "resources/bullet-down.sprite");
 	}
 	else if(orient == ORIENT_LEFT)
 	{
-		sprite->load(w->tiles, "resources/bullet-left.sprite");
+		sprite->load(TilesCache::main, "resources/bullet-left.sprite");
 	}
 	else if(orient == ORIENT_RIGHT)
 	{
-		sprite->load(w->tiles, "resources/bullet-right.sprite");
+		sprite->load(TilesCache::main, "resources/bullet-right.sprite");
 	}
 
 	sprite->play(true);
@@ -55,7 +55,6 @@ void Bullet::hit(Object *o)
 	{
 		if(Armour == 0)
 		{
-			//_world->add_explode(X, Y);
 			remove();
 		}
 		else

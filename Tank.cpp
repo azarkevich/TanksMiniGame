@@ -9,13 +9,13 @@ Tank::Tank(World *w, int x, int y, int armo)
 	Y = y;
 	_world = w;
 	_orients[ORIENT_UP] = new Sprite();
-	_orients[ORIENT_UP]->load(w->tiles, "resources/tank-a-up.sprite");
+	_orients[ORIENT_UP]->load(TilesCache::main, "resources/tank-a-up.sprite");
 	_orients[ORIENT_DOWN] = new Sprite();
-	_orients[ORIENT_DOWN]->load(w->tiles, "resources/tank-a-down.sprite");
+	_orients[ORIENT_DOWN]->load(TilesCache::main, "resources/tank-a-down.sprite");
 	_orients[ORIENT_LEFT] = new Sprite();
-	_orients[ORIENT_LEFT]->load(w->tiles, "resources/tank-a-left.sprite");
+	_orients[ORIENT_LEFT]->load(TilesCache::main, "resources/tank-a-left.sprite");
 	_orients[ORIENT_RIGHT] = new Sprite();
-	_orients[ORIENT_RIGHT]->load(w->tiles, "resources/tank-a-right.sprite");
+	_orients[ORIENT_RIGHT]->load(TilesCache::main, "resources/tank-a-right.sprite");
 
 	_orients_bb[ORIENT_UP] = BounceBox(4, 2, 24, 28);
 	_orients_bb[ORIENT_DOWN] = BounceBox(4, 2, 24, 28);

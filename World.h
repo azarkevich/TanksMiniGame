@@ -26,8 +26,6 @@ class World
 public:
 	SDL_Rect bounds;
 
-	vector<SDL_Surface *> tiles;
-
 	World(int w, int h);
 	~World();
 

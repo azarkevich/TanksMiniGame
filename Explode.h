@@ -2,13 +2,10 @@
 
 #include "Object.h"
 
-class World;
-
 class Explode : public Object
 {
 public:
-	Explode(World *w, int x, int y);
-	~Explode();
+	Explode(int x, int y);
 
 	virtual void draw(SDL_Surface *s)
 	{

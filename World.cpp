@@ -27,8 +27,6 @@ World::~World()
 	{
 		delete _objs[i];
 	}
-
-	for_each(tiles.begin(), tiles.end(), SDL_FreeSurface);
 }
 
 void World::load_level(const char* level)
@@ -59,7 +57,7 @@ void World::load_level(const char* level)
 			_objs.push_back(new Wall(this, x, y));
 			break;
 		case 'b':
-			_objs.push_back(new Bush(this, x, y));
+			_objs.push_back(new Bush(x, y));
 			break;
 		case 't':
 			_objs.push_back(new Tank(this, x, y, 2));
@@ -354,7 +352,7 @@ void World::think()
 
 void World::add_explode(int x, int y)
 {
-	_objs.push_back(new Explode(this, x, y));
+	_objs.push_back(new Explode(x, y));
 }
 
 void World::add_explode_area(SDL_Rect box, int count)
@@ -365,7 +363,7 @@ void World::add_explode_area(SDL_Rect box, int count)
 		int x = box.x - 16 + (rand() % box.w);
 		int y = box.y - 16 + rand() % box.h;
 	
-		add_object_delay(new Explode(this, x, y), delay);
+		add_object_delay(new Explode(x, y), delay);
 		delay += 200 + rand() % 100;
 	}
 }

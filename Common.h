@@ -35,3 +35,9 @@ public:
 	Uint32 _last_calc;
 	double delta;
 };
+
+class TilesCache
+{
+public:
+	static vector<SDL_Surface *> main;
+};

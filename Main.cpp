@@ -4,6 +4,8 @@
 #include "StdAfx.h"
 #include "World.h"
 
+vector<SDL_Surface *> TilesCache::main;
+
 SDL_Surface* load_image(const char *file)
 {
 	SDL_Surface *temp1, *temp2;
@@ -96,8 +98,9 @@ int main(int argc, char **argv)
 
 	SDL_WM_SetCaption("Tanks", "t");
 
+	TilesCache::main = load_sprites("resources/sprites.bmp", 32, 32, 1, 1, 0, 0, 0);
+
 	World w(screen->w, screen->h);
-	w.tiles = load_sprites("resources/sprites.bmp", 32, 32, 1, 1, 0, 0, 0);
 	w.load_level("\
 wwwwwwwwwwwwwwwwwwww\n\
 wtt  t  t  t  t  t w\n\
@@ -149,6 +152,8 @@ wwwwwwwwwwwwwwwwwwww");
 		if(delay > 0)
 			SDL_Delay(delay);
 	}
+
+	for_each(TilesCache::main.begin(), TilesCache::main.end(), SDL_FreeSurface);
 
 	return 0;
 }
