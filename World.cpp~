@@ -535,7 +535,7 @@ void World::think()
 		vector<Object *> &v = EnvMap[i];
 		for(unsigned int j=0;j<v.size();j++)
 		{
-			if(v[j]->is_remove_pending())
+			if(v[j] != NULL && v[j]->is_remove_pending())
 			{
 				v[j] = NULL;
 				EnvMapChanged = true;

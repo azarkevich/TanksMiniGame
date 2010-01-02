@@ -20,7 +20,6 @@ class World
 	int _show_bb;
 	vector< pair<Uint32, Object *> > add_queue;
 	vector<Object *> _objs;
-	vector< vector<Object *> > env_map;
 	Tank *_player;
 
 	void move_obj(Object *o);
@@ -40,6 +39,7 @@ class World
     Flag *player_flag;
     Flag *enimy_flag;
 public:
+	vector< vector<Object *> > EnvMap;
 	bool EnvMapChanged;
 	SDL_Rect bounds;
 

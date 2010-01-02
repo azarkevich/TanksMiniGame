@@ -13,6 +13,10 @@ class Tank : public Object
 	World *_world;
 	Sprite *_orients[4];
 	BounceBox _orients_bb[4];
+	Object *target;
+	void think_strategey();
+	bool is_can_goto(int row, int col);
+	void show_wave(int step, vector< vector<int > > &paths);
 public:
 	int BulletArmour;
 	int InitialArmour;

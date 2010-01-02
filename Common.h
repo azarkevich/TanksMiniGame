@@ -5,6 +5,7 @@
 #define ORIENT_LEFT 2
 #define ORIENT_RIGHT 3
 
+#define OBJ_NONE -1
 #define OBJ_BULLET 0
 #define OBJ_WALL 1
 #define OBJ_TANK 2

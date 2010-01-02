@@ -93,6 +93,114 @@ void Tank::draw(SDL_Surface *s)
 void Tank::think()
 {
 	sprite->think();
+	if(_world->_player != this && _world->EnvMapChanged)
+	{
+		think_strategey();
+	}
+}
+
+bool Tank::is_can_goto(int row, int col)
+{
+	int type = OBJ_NONE;
+	if(_world->EnvMap[row][col] != NULL)
+		type = _world->EnvMap[row][col]->type();
+	
+	if(type == OBJ_WALL || type == OBJ_TANK || type == OBJ_FLAG || type == OBJ_GUN)
+		return false;
+	
+	return true;
+}
+
+void Tank::think_strategey()
+{
+	cout << "Recalc Strategy " << endl;
+	vector< vector<int > > paths(_world->EnvMap.size(), vector<int>(_world->EnvMap[0].size(), -1));
+	// my cell:
+	int col = X/32;
+	int row = Y/32;
+	paths[row][col] = 0;
+	int step = 0;
+	bool path_added = true;
+	while(path_added)
+	{
+		path_added = false;
+//		show_wave(step, paths);
+		for(unsigned int i=0;i<paths.size();i++)
+		{
+			for(unsigned int j=0;j<paths[i].size();j++)
+			{
+				if(paths[i][j] != step)
+					continue;
+				
+				// can't go from this point. skip
+				if(is_can_goto(i, j) == false)
+					continue;
+				
+				// free to step up
+				if(i > 0 && is_can_goto(i-1, j) && paths[i-1][j] == -1)
+				{
+					paths[i-1][j] = step+1;
+				}
+				// free to step down
+				if(i < (paths.size()-1) && is_can_goto(i+1, j) && paths[i+1][j] == -1)
+				{
+					paths[i+1][j] = step+1;
+				}
+				// free to step left
+				if(j > 0 && is_can_goto(i, j-1) && paths[i][j-1] == -1)
+				{
+					paths[i][j-1] = step+1;
+				}
+				// free to step right
+				if(j < (paths[i].size() - 1) && is_can_goto(i, j+1) && paths[i][j+1] == -1)
+				{
+					paths[i][j+1] = step+1;
+				}
+				path_added = true;
+			}
+		}
+		step++;
+	}
+	
+	// get interesting objects:
+	vector< pair<int, int> > targets;
+	for(unsigned int i=0;i<paths.size();i++)
+	{
+		for(unsigned int j=0;j<paths[i].size();j++)
+		{
+			Object *o = _world->EnvMap[i][j];
+			if(o == NULL)
+				continue;
+			int type = o->type();
+			if(type != OBJ_FLAG && type != OBJ_TANK && type != OBJ_BONUS)
+				continue;
+			
+			if(paths[i][j] == -1)
+			{
+				cout << "no path to Obj=" << type << " Row=" << i << " Col=" << j << endl;
+				continue;
+			}
+			cout << "has path to Obj=" << type << " Row=" << i << " Col=" << j << endl;
+		}
+	}
+}
+
+void Tank::show_wave(int step, vector< vector<int > > &paths)
+{
+	cout << "Step " << step << endl;
+	for(unsigned int i=0;i<paths.size();i++)
+	{
+		for(unsigned int j=0;j<paths[i].size();j++)
+		{
+			cout << setw(3) << paths[i][j] << " ";
+		}
+		cout << endl;
+	}
+	cout << endl;
+	
+	cout << "Press ENTER" << endl;
+	char t[10];
+	cin.getline(t, 10);
 }
 
 int Tank::type()

@@ -12,7 +12,7 @@
 #define OBJ_BUSH 4
 #define OBJ_FLAG 5
 #define OBJ_GUN 6
-#define OBJ_BONUS 6
+#define OBJ_BONUS 7
 
 class WorldTime
 {
