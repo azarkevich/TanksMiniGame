@@ -71,18 +71,21 @@ void Tank::draw(SDL_Surface *s)
 		SDL_Rect r;
 		r.x = X - 5;
 		r.y = Y - 5;
-		r.w = 5 + (InitialArmour * 5);
-		r.h = 4;
-		SDL_FillRect(s, &r, SDL_MapRGB(s->format, 0, 0, 0));
-		r.x++;
-		r.y++;
-		r.h-=2;
-		r.w-=2;
-		SDL_FillRect(s, &r, SDL_MapRGB(s->format, 255, 0, 0));
-		if(Armour > 0 && InitialArmour > 0)
+		if(r.x > 0 && r.y > 0)
 		{
-			r.w = r.w * (1.0 * Armour / InitialArmour);
-			SDL_FillRect(s, &r, SDL_MapRGB(s->format, 0, 255, 0));
+			r.w = 5 + (InitialArmour * 5);
+			r.h = 4;
+			SDL_FillRect(s, &r, SDL_MapRGB(s->format, 0, 0, 0));
+			r.x++;
+			r.y++;
+			r.h-=2;
+			r.w-=2;
+			SDL_FillRect(s, &r, SDL_MapRGB(s->format, 255, 0, 0));
+			if(Armour > 0 && InitialArmour > 0)
+			{
+				r.w = r.w * (1.0 * Armour / InitialArmour);
+				SDL_FillRect(s, &r, SDL_MapRGB(s->format, 0, 255, 0));
+			}
 		}
 	}
 }

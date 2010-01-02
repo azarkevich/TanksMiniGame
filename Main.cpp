@@ -68,15 +68,6 @@ vector<SDL_Surface*> load_sprites(const char *file,
 	return sprites;
 }
 
-void draw_image(SDL_Surface *s, SDL_Surface *img, int x, int y)
-{
-	SDL_Rect dest;
-	dest.x = x;
-	dest.y = y;
-
-	SDL_BlitSurface(img, NULL, s, &dest);
-}
-
 int main(int argc, char **argv)
 {
 	/* Initialize the SDL library */
@@ -89,7 +80,7 @@ int main(int argc, char **argv)
 	/* Clean up on exit */
 	atexit(SDL_Quit);
 
-	SDL_Surface *screen = SDL_SetVideoMode(800, 600, 0, SDL_HWSURFACE | SDL_DOUBLEBUF /* | SDL_FULLSCREEN*/);
+	SDL_Surface *screen = SDL_SetVideoMode(800, 600, 0, SDL_HWSURFACE | SDL_DOUBLEBUF);//  | SDL_FULLSCREEN);
 	if (screen == NULL)
 	{
         	fprintf(stderr, "Couldn't set video mode: %s\n", SDL_GetError());
