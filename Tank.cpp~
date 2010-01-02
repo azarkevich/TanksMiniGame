@@ -37,7 +37,9 @@ Tank::Tank(World *w, int tank_type, int x, int y, int armo)
 	BBox = _orients_bb[Orient];
 	InitialArmour = Armour = armo;
 	
-	BulletArmour = 1;
+	BulletArmour = 0;
+	
+	TankSpeed = 32;
 }
 
 void Tank::fire()
@@ -114,12 +116,17 @@ void Tank::move_to(int orient)
 		delete move_info;
 		move_info = NULL;
 	}
-	move_info = new MoveInfo(32, Orient);
+	move_info = new MoveInfo(TankSpeed, Orient);
 
 	sprite = _orients[Orient];
 	sprite->play(true);
 
 	BBox = _orients_bb[Orient];
+}
+
+bool Tank::is_moved()
+{
+	
 }
 
 void Tank::stop()

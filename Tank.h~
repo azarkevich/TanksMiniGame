@@ -14,15 +14,18 @@ class Tank : public Object
 	Sprite *_orients[4];
 	BounceBox _orients_bb[4];
 public:
+	int BulletArmour;
 	int InitialArmour;
 	int Armour;
 	int Orient;
+	int TankSpeed;
 	Tank(World *w, int tank_type, int x, int y, int armo);
 
 	virtual void draw(SDL_Surface *s);
 	virtual void think();
 	virtual int type();
 	virtual bool hit_by(Bullet *b);
+	bool is_moved();
 	void move_to(int orient);
 	void stop();
 	void fire();

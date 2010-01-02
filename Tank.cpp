@@ -38,6 +38,8 @@ Tank::Tank(World *w, int tank_type, int x, int y, int armo)
 	InitialArmour = Armour = armo;
 	
 	BulletArmour = 0;
+	
+	TankSpeed = 32;
 }
 
 void Tank::fire()
@@ -114,7 +116,7 @@ void Tank::move_to(int orient)
 		delete move_info;
 		move_info = NULL;
 	}
-	move_info = new MoveInfo(32, Orient);
+	move_info = new MoveInfo(TankSpeed, Orient);
 
 	sprite = _orients[Orient];
 	sprite->play(true);

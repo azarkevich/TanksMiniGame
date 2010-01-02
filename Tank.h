@@ -18,6 +18,7 @@ public:
 	int InitialArmour;
 	int Armour;
 	int Orient;
+	int TankSpeed;
 	Tank(World *w, int tank_type, int x, int y, int armo);
 
 	virtual void draw(SDL_Surface *s);

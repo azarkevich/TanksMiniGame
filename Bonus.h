@@ -7,6 +7,7 @@ class Tank;
 
 #define BONUS_SUPER_BULLET 0
 #define BONUS_HEAL 1
+#define BONUS_SPEED 2
 
 class Bonus : public Object
 {

@@ -121,8 +121,11 @@ void World::load_level(const char* level)
 			case 's':
 				_objs.push_back(new Bonus(x, y, BONUS_SUPER_BULLET));
 				break;
+			case '>':
+				_objs.push_back(new Bonus(x, y, BONUS_SUPER_SPEED));
+				break;
 			case '+':
-				_objs.push_back(new Bonus(x, y, BONUS_SUPER_BULLET));
+				_objs.push_back(new Bonus(x, y, BONUS_HEAL));
 				break;
 			case 'p':
 				player_start_x = x;

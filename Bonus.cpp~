@@ -4,7 +4,8 @@
 
 static const char *sprite_file[] = {
 	"resources/bonus-super-bullet.sprite",
-	"resources/bonus-heal.sprite"
+	"resources/bonus-heal.sprite",
+	"resources/bonus-speed.sprite"
 };
 
 Bonus::Bonus(int x, int y, int bonus_type)
@@ -38,7 +39,19 @@ int Bonus::type()
 
 void Bonus::action(Tank *t)
 {
-	if()
-	t->BulletArmour++;
+	if(bonus_type == BONUS_SUPER_BULLET)
+	{
+		t->BulletArmour++;
+	}
+	else if(bonus_type == BONUS_HEAL)
+	{
+		t->Armour = t->InitialArmour;
+	}
+	else if(bonus_type == BONUS_SPEED)
+	{
+		t->TankSpeed += 32;
+		if(t->move_info != NULL)
+			t->move_to(t->Orient);
+	}
 	remove();
 }
