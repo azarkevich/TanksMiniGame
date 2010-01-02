@@ -33,3 +33,8 @@ bool Object::is_removed()
 {
 	return (WorldTime::now >= remove_at);
 }
+
+bool Object::is_remove_pending()
+{
+	return (remove_at != numeric_limits<Uint32>::max());
+}

@@ -7,9 +7,13 @@
 #include "Wall.h"
 #include "Explode.h"
 
+#define GAME_MODE_START 0
+#define GAME_MODE_PLAY 1
+#define GAME_MODE_PAUSE 2
+#define GAME_MODE_LOSE 3
+
 class World
 {
-	bool _pause;
 	Uint32 _world_time_diff;
 	int _show_bb;
 	vector< pair<Uint32, Object *> > add_queue;
@@ -20,9 +24,12 @@ class World
 	void show_bb(SDL_Surface *s);
 
 	void try_move_tank(Tank *t);
-	template<typename T>
-		void handle_removed(vector<T *> &v);
 	bool is_possible_position(Object *o);
+	int game_mode;
+	void start_game();
+	int player_start_x, player_start_y;
+	Uint32 respawn_player_at;
+	int lives;
 public:
 	SDL_Rect bounds;
 
@@ -31,7 +38,6 @@ public:
 
 	void load_level(const char* level);
 
-	void pause(bool set);
 	void add_explode(int x, int y);
 	
 	void add_object(Object *o)

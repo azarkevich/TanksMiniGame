@@ -113,7 +113,7 @@ w             www  w\n\
 w      bb     www  w\n\
 w      bb          w\n\
 w         g        w\n\
-wt b   b    G      w\n\
+wtGb   b    G      w\n\
 w       www        w\n\
 wp      wfw        w\n\
 wwwwwwwwwwwwwwwwwwww");

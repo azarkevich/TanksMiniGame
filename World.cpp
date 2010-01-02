@@ -13,7 +13,7 @@ Uint32 WorldTime::now;
 
 World::World(int w, int h)
 {
-	_pause = false;
+	game_mode = GAME_MODE_START;
 	_world_time_diff = 0;
 	_show_bb = 0;
 	bounds.x=0;
@@ -21,6 +21,9 @@ World::World(int w, int h)
 	bounds.w = w;
 	bounds.h = h;
 	_player = NULL;
+	player_start_x = 0;
+	player_start_y = 0;
+	lives = 5;
 }
 
 World::~World()
@@ -80,8 +83,8 @@ void World::load_level(const char* level)
 			_objs.push_back(new Tank(this, TANK_ENIMY, x, y, 5));
 			break;
 		case 'p':
-			_player = new Tank(this, TANK_PLAYER, x, y, 5);
-			_objs.push_back(_player);
+			player_start_x = x;
+			player_start_y = y;
 			break;
 		case 'F':
 		case 'f':
@@ -103,10 +106,22 @@ void World::handle_input(const SDL_Event &ev)
 		}
 		if(ev.key.keysym.sym == SDLK_p)
 		{
-			pause(!_pause);
+			if(game_mode == GAME_MODE_PLAY)
+			{
+				game_mode = GAME_MODE_PAUSE;
+			}
+			else if(game_mode == GAME_MODE_PAUSE)
+			{
+				game_mode = GAME_MODE_PLAY;
+				_world_time_diff = SDL_GetTicks() - WorldTime::now;
+			}
 		}
-		if(_pause)
+		if(game_mode != GAME_MODE_PLAY)
 			return;
+		
+		if(_player == NULL)
+			return;
+		
 		if(ev.key.keysym.sym == SDLK_SPACE)
 		{
 			_player->fire();
@@ -136,15 +151,6 @@ void World::handle_input(const SDL_Event &ev)
 				_player->move_to(old_orient);
 				_player->stop();
 			}
-		}
-	}
-	if(ev.type == SDL_KEYUP)
-	{
-		if(_pause)
-			return;
-		if(ev.key.keysym.sym == SDLK_UP || ev.key.keysym.sym == SDLK_DOWN || ev.key.keysym.sym == SDLK_LEFT || ev.key.keysym.sym == SDLK_RIGHT)
-		{
-			//tank->stop();
 		}
 	}
 }
@@ -257,25 +263,33 @@ void World::try_move_tank(Tank *t)
 
 }
 
-template<typename T>
-void World::handle_removed(vector<T *> &v)
+void World::start_game()
 {
-	for(unsigned int i=0;i<v.size();i++)
-	{
-		if(v[i]->is_removed())
-		{
-			v.erase(v.begin() + i);
-			i--;
-		}
-	}
+	game_mode = GAME_MODE_PLAY;
+	respawn_player_at = WorldTime::now + 1000;
 }
 
 void World::think()
 {
-	if(_pause)
+	if(game_mode == GAME_MODE_PAUSE)
+		return;
+	
+	if(game_mode == GAME_MODE_LOSE)
 		return;
 
 	WorldTime::now = SDL_GetTicks() - _world_time_diff;
+	
+	if(game_mode == GAME_MODE_START)
+	{
+		start_game();
+	}
+
+	if(respawn_player_at <= WorldTime::now)
+	{
+		_player = new Tank(this, TANK_PLAYER, player_start_x, player_start_y, 5);
+		_objs.push_back(_player);
+		respawn_player_at = numeric_limits<Uint32>::max();
+	}
 
 	// add pending objects
 	for(unsigned int i=0;i<add_queue.size();i++)
@@ -308,7 +322,7 @@ void World::think()
 	for(unsigned int i=0;i<_objs.size();i++)
 	{
 		Object *o = _objs[i];
-		if(o->type() != OBJ_TANK)
+		if(o->is_remove_pending() || o->type() != OBJ_TANK)
 			continue;
 
 		try_move_tank((Tank *)o);
@@ -318,7 +332,7 @@ void World::think()
 	for(unsigned int i=0;i<_objs.size();i++)
 	{
 		// select bullets
-		if(_objs[i]->is_removed() || _objs[i]->type() != OBJ_BULLET)
+		if(_objs[i]->is_remove_pending() || _objs[i]->type() != OBJ_BULLET)
 			continue;
 		Bullet *b = (Bullet *)_objs[i];
 
@@ -331,7 +345,7 @@ void World::think()
 
 			Object *o = _objs[j];
 			// skip removed
-			if(o->is_removed())
+			if(o->is_remove_pending())
 				continue;
 			// check with: tanks, bullets, walls, flag
 			int type = o->type();
@@ -342,7 +356,7 @@ void World::think()
 			{
 				b->hit(o);
 				// if bullet removed by hit - skip other checks
-				if(b->is_removed())
+				if(b->is_remove_pending())
 					break;
 			}
 		}
@@ -352,6 +366,21 @@ void World::think()
 	for(unsigned int i=0;i<_objs.size();i++)
 	{
 		_objs[i]->think();
+	}
+	
+	if(_player != NULL && _player->is_remove_pending())
+	{
+		_player = NULL;
+		
+		if(lives == 0)
+		{
+			game_mode = GAME_MODE_LOSE;
+		}
+		else
+		{
+			// respawn after 2 sec.
+			respawn_player_at = WorldTime::now + 2000;
+		}
 	}
 	
 	// Remove pending objects
@@ -364,6 +393,8 @@ void World::think()
 			i--;
 		}
 	}
+	
+	
 //	cout << _objs.size() << endl;
 }
 
@@ -428,17 +459,4 @@ void World::draw(SDL_Surface *s)
 
 	if(_show_bb == 2)
 		show_bb(s);
-}
-
-void World::pause(bool set)
-{
-	if(!_pause && set)
-	{
-		_pause = true;
-	}
-	else if(_pause && !set)
-	{
-		_pause = false;
-		_world_time_diff = SDL_GetTicks() - WorldTime::now;
-	}
 }

@@ -29,4 +29,5 @@ public:
 	void remove(Uint32 at = 0);
 	void remove_delay(Uint32 delay);
 	bool is_removed();
+	bool is_remove_pending();
 };
