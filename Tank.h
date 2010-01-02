@@ -5,6 +5,9 @@
 
 class World;
 
+#define TANK_PLAYER 0
+#define TANK_ENIMY 1
+
 class Tank : public Object
 {
 	World *_world;
@@ -14,7 +17,7 @@ public:
 	int InitialArmour;
 	int Armour;
 	int Orient;
-	Tank(World *w, int x, int y, int armo);
+	Tank(World *w, int tank_type, int x, int y, int armo);
 
 	virtual void draw(SDL_Surface *s);
 	virtual void think();

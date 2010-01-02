@@ -61,19 +61,19 @@ void World::load_level(const char* level)
 			_objs.push_back(new Bush(x, y));
 			break;
 		case 't':
-			_objs.push_back(new Tank(this, x, y, 2));
+			_objs.push_back(new Tank(this, TANK_ENIMY, x, y, 2));
 			break;
 		case 'T':
-			_objs.push_back(new Tank(this, x, y, 3));
+			_objs.push_back(new Tank(this, TANK_ENIMY, x, y, 3));
 			break;
 		case 'h':
-			_objs.push_back(new Tank(this, x, y, 4));
+			_objs.push_back(new Tank(this, TANK_ENIMY, x, y, 4));
 			break;
 		case 'H':
-			_objs.push_back(new Tank(this, x, y, 5));
+			_objs.push_back(new Tank(this, TANK_ENIMY, x, y, 5));
 			break;
 		case 'p':
-			_player = new Tank(this, x, y, 5);
+			_player = new Tank(this, TANK_PLAYER, x, y, 5);
 			_objs.push_back(_player);
 			break;
 		case 'F':

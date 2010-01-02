@@ -3,19 +3,29 @@
 #include "World.h"
 #include "Bullet.h"
 
-Tank::Tank(World *w, int x, int y, int armo)
+Tank::Tank(World *w, int tank_type, int x, int y, int armo)
 {
 	X = x;
 	Y = y;
 	_world = w;
 	_orients[ORIENT_UP] = new Sprite();
-	_orients[ORIENT_UP]->load(TilesCache::main, "resources/tank-a-up.sprite");
 	_orients[ORIENT_DOWN] = new Sprite();
-	_orients[ORIENT_DOWN]->load(TilesCache::main, "resources/tank-a-down.sprite");
 	_orients[ORIENT_LEFT] = new Sprite();
-	_orients[ORIENT_LEFT]->load(TilesCache::main, "resources/tank-a-left.sprite");
 	_orients[ORIENT_RIGHT] = new Sprite();
-	_orients[ORIENT_RIGHT]->load(TilesCache::main, "resources/tank-a-right.sprite");
+	if(tank_type == TANK_PLAYER)
+	{
+		_orients[ORIENT_UP]->load(TilesCache::main, "resources/tank-a-up.sprite");
+		_orients[ORIENT_DOWN]->load(TilesCache::main, "resources/tank-a-down.sprite");
+		_orients[ORIENT_LEFT]->load(TilesCache::main, "resources/tank-a-left.sprite");
+		_orients[ORIENT_RIGHT]->load(TilesCache::main, "resources/tank-a-right.sprite");
+	}
+	else if(tank_type == TANK_ENIMY)
+	{
+		_orients[ORIENT_UP]->load(TilesCache::main, "resources/tank-b-up.sprite");
+		_orients[ORIENT_DOWN]->load(TilesCache::main, "resources/tank-b-down.sprite");
+		_orients[ORIENT_LEFT]->load(TilesCache::main, "resources/tank-b-left.sprite");
+		_orients[ORIENT_RIGHT]->load(TilesCache::main, "resources/tank-b-right.sprite");
+	}
 
 	_orients_bb[ORIENT_UP] = BounceBox(4, 2, 24, 28);
 	_orients_bb[ORIENT_DOWN] = BounceBox(4, 2, 24, 28);
