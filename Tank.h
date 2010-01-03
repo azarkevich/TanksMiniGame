@@ -17,7 +17,16 @@ class Tank : public Object
 	void think_strategey();
 	bool is_can_goto(int row, int col);
 	void show_wave(int step, vector< vector<int > > &paths);
+	vector< vector<int > > paths;
+	bool get_path_to(int row, int col, deque< pair<int, int> > &v);
+	pair<int, int> get_prev_step(unsigned int row, unsigned int col);
+	void calc_paths();
+	deque< pair<int,int> > path_to_target;
+	Uint32 next_fire_at;
+	void think_fire();
+
 public:
+	Uint32 WeaponReloadTime;
 	int BulletArmour;
 	int InitialArmour;
 	int Armour;

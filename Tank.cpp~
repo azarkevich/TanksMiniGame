@@ -5,6 +5,7 @@
 
 Tank::Tank(World *w, int tank_type, int x, int y, int armo)
 {
+	next_fire_at = 0;
 	X = x;
 	Y = y;
 	_world = w;
@@ -40,10 +41,17 @@ Tank::Tank(World *w, int tank_type, int x, int y, int armo)
 	BulletArmour = 0;
 	
 	TankSpeed = 32;
+	
+	WeaponReloadTime = 500;
 }
 
 void Tank::fire()
 {
+	if(next_fire_at > WorldTime::now)
+		return;
+	
+	next_fire_at = WorldTime::now + WeaponReloadTime;
+	
 	int ex = X, ey = Y;
 	if(Orient == ORIENT_UP || Orient == ORIENT_DOWN)
 		ex = X + BBox.x + BBox.w/2;
@@ -90,12 +98,89 @@ void Tank::draw(SDL_Surface *s)
 	}
 }
 
+void Tank::think_fire()
+{
+	// want fire if ahead: player, flag
+	// not want if ahead: enimy_flag
+	
+	int drow = 0;
+	int dcol = 0;
+	unsigned int col = X/32;
+	unsigned int row = Y/32;
+	
+	if(Orient == ORIENT_UP)
+		drow = -1;
+	else if(Orient == ORIENT_DOWN)
+		drow = 1;
+	else if(Orient == ORIENT_LEFT)
+		dcol = -1;
+	else if(Orient == ORIENT_RIGHT)
+		dcol = 1;
+	
+	while(col >= 0 && row >= 0 && row < (_world->EnvMap.size()-1) && col < (_world->EnvMap[0].size()-1))
+	{
+		row += drow;
+		col += dcol;
+		Object *o = _world->EnvMap[row][col];
+		if(_world->enimy_flag == o)
+			return;
+	}
+	
+	fire();
+}
+
 void Tank::think()
 {
 	sprite->think();
-	if(_world->_player != this && _world->EnvMapChanged)
+
+	if(next_fire_at < WorldTime::now && rand() % 50 == 0)
+		think_fire();
+	
+	if(_world->_player != this && (_world->EnvMapChanged || path_to_target.size() == 0))
 	{
 		think_strategey();
+	}
+	
+	if(path_to_target.size() == 0)
+		return;
+	
+	// we still not reach next cell
+	if(Y == path_to_target[0].first*32 && X == path_to_target[0].second*32)
+	{
+		path_to_target.pop_front();
+	}
+	
+	if(path_to_target.size() == 0)
+	{
+		// we are here !
+		stop();
+		return;
+	}
+
+	if(Y != path_to_target[0].first*32 || X != path_to_target[0].second*32)
+	{
+		// which direction ?
+		int orient = -1;
+		if(Y > path_to_target[0].first*32)
+			orient = ORIENT_UP;
+		else if(Y < path_to_target[0].first*32)
+			orient = ORIENT_DOWN;
+		else if(X > path_to_target[0].second*32)
+			orient = ORIENT_LEFT;
+		else if(X < path_to_target[0].second*32)
+			orient = ORIENT_RIGHT;
+
+		if(move_info != NULL && move_info->Orient != orient)
+		{
+			delete move_info;
+			move_info = NULL;
+		}
+
+		// begin movint to target
+		if(move_info == NULL)
+		{
+			move_to(orient);
+		}
 	}
 }
 
@@ -113,11 +198,24 @@ bool Tank::is_can_goto(int row, int col)
 
 void Tank::think_strategey()
 {
-	cout << "Recalc Strategy " << endl;
-	vector< vector<int > > paths(_world->EnvMap.size(), vector<int>(_world->EnvMap[0].size(), -1));
+	calc_paths();
+
 	// flag
-	int flag_row = -1;
-	int flag_col = -1;
+	int flag_row = _world->player_flag->Y/32;
+	int flag_col = _world->player_flag->X/32;
+	
+	// find path to flag
+	path_to_target.clear();
+	// TODO: find free point about flag! see -1
+	if(get_path_to(flag_row, flag_col - 1, path_to_target) == false)
+	{
+		
+	}
+}
+
+void Tank::calc_paths()
+{
+	paths = vector< vector<int > >(_world->EnvMap.size(), vector<int>(_world->EnvMap[0].size(), -1));
 	// my cell:
 	int col = X/32;
 	int row = Y/32;
@@ -138,12 +236,6 @@ void Tank::think_strategey()
 				// can't go from this point. skip
 				if(is_can_goto(i, j) == false)
 					continue;
-				
-				if(flag_col == -1 && flag_row == -1 && _world->EnvMap[i][j] == _world->player_flag)
-				{
-					flag_col = j;
-					flar_row = i;
-				}
 				
 				// free to step up
 				if(i > 0 && is_can_goto(i-1, j) && paths[i-1][j] == -1)
@@ -170,19 +262,45 @@ void Tank::think_strategey()
 		}
 		step++;
 	}
+}
+
+// previous step
+pair<int, int> Tank::get_prev_step(unsigned int row, unsigned int col)
+{
+	int prev = paths[row][col] - 1;
 	
-	cout << "Flag: " << flag_row << " " << flag_col << endl;
-	// find path flag
+	if(row > 0 && paths[row - 1][col] == prev)
+		return make_pair(row - 1, col);
 	
-	for(unsigned int i=0;i<paths.size();i++)
-	{
-		for(unsigned int j=0;j<paths[i].size();j++)
-		{
-			if(_world->EnvMap[i][j] == _world->enimy_flag)
-			{
-			}
-		}
-	}
+	if(row < (paths.size() - 1) && paths[row + 1][col] == prev)
+		return make_pair(row + 1, col);
+
+	if(col > 0 && paths[row][col - 1] == prev)
+		return make_pair(row, col - 1);
+	
+	if(col < (paths[0].size() - 1) && paths[row][col + 1] == prev)
+		return make_pair(row, col + 1);
+	
+	return make_pair(-1, -1);
+}
+
+bool Tank::get_path_to(int row, int col, deque< pair<int, int> > &v)
+{
+	if(paths.size() == 0)
+		calc_paths();
+	
+	if(paths[row][col] == 0)
+		return true;
+	
+	v.push_front(make_pair(row, col));
+
+	pair<int,int> prev_pt = get_prev_step(row, col);
+	if(prev_pt.first == -1)
+		return false;
+	
+//	cout << "Row=" << prev_pt.first << " Col=" << prev_pt.second << endl;
+
+	return get_path_to(prev_pt.first, prev_pt.second, v);
 }
 
 void Tank::show_wave(int step, vector< vector<int > > &paths)

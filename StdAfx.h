@@ -12,6 +12,7 @@
 #include <fstream>
 #include <limits>
 #include <iomanip>
+#include <deque>
 
 using namespace std;
 
