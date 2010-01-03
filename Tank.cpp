@@ -115,6 +115,9 @@ void Tank::think_strategey()
 {
 	cout << "Recalc Strategy " << endl;
 	vector< vector<int > > paths(_world->EnvMap.size(), vector<int>(_world->EnvMap[0].size(), -1));
+	// flag
+	int flag_row = -1;
+	int flag_col = -1;
 	// my cell:
 	int col = X/32;
 	int row = Y/32;
@@ -135,6 +138,12 @@ void Tank::think_strategey()
 				// can't go from this point. skip
 				if(is_can_goto(i, j) == false)
 					continue;
+				
+				if(flag_col == -1 && flag_row == -1 && _world->EnvMap[i][j] == _world->player_flag)
+				{
+					flag_col = j;
+					flag_row = i;
+				}
 				
 				// free to step up
 				if(i > 0 && is_can_goto(i-1, j) && paths[i-1][j] == -1)
@@ -162,25 +171,16 @@ void Tank::think_strategey()
 		step++;
 	}
 	
-	// get interesting objects:
-	vector< pair<int, int> > targets;
+	cout << "Flag: " << flag_row << " " << flag_col << endl;
+	// find path flag
+	
 	for(unsigned int i=0;i<paths.size();i++)
 	{
 		for(unsigned int j=0;j<paths[i].size();j++)
 		{
-			Object *o = _world->EnvMap[i][j];
-			if(o == NULL)
-				continue;
-			int type = o->type();
-			if(type != OBJ_FLAG && type != OBJ_TANK && type != OBJ_BONUS)
-				continue;
-			
-			if(paths[i][j] == -1)
+			if(_world->EnvMap[i][j] == _world->enimy_flag)
 			{
-				cout << "no path to Obj=" << type << " Row=" << i << " Col=" << j << endl;
-				continue;
 			}
-			cout << "has path to Obj=" << type << " Row=" << i << " Col=" << j << endl;
 		}
 	}
 }

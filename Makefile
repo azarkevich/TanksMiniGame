@@ -3,15 +3,13 @@ CPPFLAGS=-Wall
 CPPFLAGS+=-lSDL -lSDLmain
 CPPFLAGS+=-I/usr/include/SDL
 SRC=*.cpp
+HDR=*.h
 OBJ=$(SRC: *.cpp=.o)
 OUT=tanks
 
 all: $(OUT)
 
-$(SRC): *.h
-
-
-$(OBJ):
+$(OBJ): $(HDR)
 	$(CC) $(SRC) $(CPPFLAGS) -c
 
 $(OUT): $(OBJ)

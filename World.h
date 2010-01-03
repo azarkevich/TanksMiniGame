@@ -20,6 +20,9 @@ class World
 	int _show_bb;
 	vector< pair<Uint32, Object *> > add_queue;
 	vector<Object *> _objs;
+	// save removed objects until end game, because tanks can save pointer to target after its removal
+	vector<Object *> removed_objs;
+	void delete_objects();
 
 	void move_obj(Object *o);
 	void show_bb(SDL_Surface *s);
@@ -35,9 +38,9 @@ class World
     void load_level(const char* level);
     const char *level;
     
+public:
     Flag *player_flag;
     Flag *enimy_flag;
-public:
 	Tank *_player;
 	vector< vector<Object *> > EnvMap;
 	bool EnvMapChanged;

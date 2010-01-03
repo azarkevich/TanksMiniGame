@@ -41,10 +41,7 @@ World::World(int w, int h)
 
 World::~World()
 {
-	for(unsigned int i = 0;i<_objs.size();i++)
-	{
-		delete _objs[i];
-	}
+	delete_objects();
 	for(int i=0;i<5;i++)
 	{
 		if(mode_image[i] != NULL)
@@ -357,6 +354,20 @@ void World::try_move_tank(Tank *t)
 	}
 }
 
+void World::delete_objects()
+{
+	for(unsigned int i = 0;i<_objs.size();i++)
+	{
+		delete _objs[i];
+	}
+	for(unsigned int i = 0;i<removed_objs.size();i++)
+	{
+		delete removed_objs[i];
+	}
+	_objs.clear();
+	removed_objs.clear();
+}
+
 void World::think()
 {
 	if(game_mode == GAME_MODE_PAUSE)
@@ -366,11 +377,7 @@ void World::think()
 	
 	if(game_mode == GAME_MODE_START)
 	{
-		for(unsigned int i = 0;i<_objs.size();i++)
-		{
-			delete _objs[i];
-		}
-		_objs.clear();
+		delete_objects();
 		player_flag = NULL;
 		enimy_flag = NULL;
 		_player = NULL;
@@ -548,7 +555,7 @@ void World::think()
 	{
 		if(_objs[i]->is_removed())
 		{
-			delete _objs[i];
+			removed_objs.push_back(_objs[i]);
 			_objs.erase(_objs.begin() + i);
 			i--;
 		}
