@@ -19,7 +19,6 @@ using namespace std;
 #include <cstdio>
 #include <cstdlib>
 
-#include "SDL.h"
+#include "SDL/SDL.h"
 
 #include <math.h>
-//#define M_PI 3.141592653589793238462643 // ??? why no in math ?
