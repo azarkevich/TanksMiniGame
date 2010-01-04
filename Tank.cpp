@@ -40,9 +40,9 @@ Tank::Tank(World *w, int tank_type, int x, int y, int armo)
 	
 	BulletArmour = 0;
 	
-	TankSpeed = 10;
+	TankSpeed = 3;
 	
-	WeaponReloadTime = 50;
+	WeaponReloadTime = 25;
 }
 
 void Tank::fire()
@@ -294,8 +294,6 @@ bool Tank::get_path_to(int row, int col, deque< pair<int, int> > &v)
 	pair<int,int> prev_pt = get_prev_step(row, col);
 	if(prev_pt.first == -1)
 		return false;
-	
-//	cout << "Row=" << prev_pt.first << " Col=" << prev_pt.second << endl;
 
 	return get_path_to(prev_pt.first, prev_pt.second, v);
 }

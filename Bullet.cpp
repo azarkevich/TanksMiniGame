@@ -33,7 +33,7 @@ Bullet::Bullet(World *w, int orient, int x, int y, Object *e)
 
 	sprite->play(true);
 
-	move_info = new MoveInfo(128, orient);
+	move_info = new MoveInfo(1, orient);
 
 	Armour = 0;
 	hit_delay = 0;

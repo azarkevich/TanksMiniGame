@@ -285,6 +285,7 @@ void World::move_obj(Object *o)
 	{
 		o->X++;
 	}
+	o->move_info->NextMoveAt = WorldTime::now + o->move_info->Speed;
 }
 
 bool World::is_possible_position(Object *self)
@@ -534,29 +535,29 @@ void World::think(Uint32 system_ticks)
 		{
 			_player = NULL;
 			lives--;
+
+			if(_player == NULL && lives > 0)
+			{
+				// respawn after 10 frames
+				respawn_player_at = WorldTime::now + 10;
+			}
 		}
 		
 		if(_remote_player != NULL && _remote_player->is_remove_pending())
 		{
 			_remote_player = NULL;
 			remote_lives--;
+
+			if(_remote_player == NULL && remote_lives > 0)
+			{
+				// respawn after 10 frames
+				respawn_remote_player_at = WorldTime::now + 10;
+			}
 		}
 		
 		if(lives <= 0 && remote_lives <= 0)
 		{
 			game_mode = GAME_MODE_LOSE;
-		}
-		
-		if(_player == NULL && lives > 0)
-		{
-			// respawn after 2 sec.
-			respawn_player_at = WorldTime::now + 10;
-		}
-		
-		if(_remote_player == NULL && remote_lives > 0)
-		{
-			// respawn after 2 sec.
-			respawn_remote_player_at = WorldTime::now + 10;
 		}
 
 		if(player_flag != NULL && player_flag->Dead)

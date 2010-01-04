@@ -42,6 +42,7 @@ void Bonus::action(Tank *t)
 	if(bonus_type == BONUS_SUPER_BULLET)
 	{
 		t->BulletArmour++;
+		t->WeaponReloadTime /= 2;
 	}
 	else if(bonus_type == BONUS_HEAL)
 	{
@@ -49,9 +50,12 @@ void Bonus::action(Tank *t)
 	}
 	else if(bonus_type == BONUS_SPEED)
 	{
-		t->TankSpeed *= 2;
-		if(t->move_info != NULL)
-			t->move_to(t->Orient);
+		if(t->TankSpeed > 1)
+		{
+			t->TankSpeed--;
+			if(t->move_info != NULL)
+				t->move_to(t->Orient);
+		}
 	}
 	remove();
 }
