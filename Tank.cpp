@@ -28,10 +28,10 @@ Tank::Tank(World *w, int tank_type, int x, int y, int armo)
 		_orients[ORIENT_RIGHT]->load(TilesCache::main, "resources/tank-b-right.sprite");
 	}
 
-	_orients_bb[ORIENT_UP] = BounceBox(4, 2, 24, 28);
-	_orients_bb[ORIENT_DOWN] = BounceBox(4, 2, 24, 28);
-	_orients_bb[ORIENT_LEFT] = BounceBox(2, 4, 28, 24);
-	_orients_bb[ORIENT_RIGHT] = BounceBox(2, 4, 28, 24);
+	_orients_bb[ORIENT_UP] = BounceBox(2, 2, 28, 28);
+	_orients_bb[ORIENT_DOWN] = BounceBox(2, 2, 28, 28);
+	_orients_bb[ORIENT_LEFT] = BounceBox(2, 2, 28, 28);
+	_orients_bb[ORIENT_RIGHT] = BounceBox(2, 2, 28, 28);
 
 	Orient = ORIENT_UP;
 	sprite = _orients[Orient];
@@ -100,33 +100,12 @@ void Tank::draw(SDL_Surface *s)
 
 void Tank::think_fire()
 {
-	// want fire if ahead: player, flag
-	// not want if ahead: enimy_flag
-	/*
-	int drow = 0;
-	int dcol = 0;
-	unsigned int col = X/32;
-	unsigned int row = Y/32;
-	
-	if(Orient == ORIENT_UP)
-		drow = -1;
-	else if(Orient == ORIENT_DOWN)
-		drow = 1;
-	else if(Orient == ORIENT_LEFT)
-		dcol = -1;
-	else if(Orient == ORIENT_RIGHT)
-		dcol = 1;
-	
-	while(col >= 0 && row >= 0 && row < (_world->EnvMap.size()-1) && col < (_world->EnvMap[0].size()-1))
-	{
-		row += drow;
-		col += dcol;
-		Object *o = _world->EnvMap[row][col];
-		if(_world->enimy_flag == o)
-			return;
-	}
-	*/
-	fire();
+	if(next_fire_at > WorldTime::now)
+		return;
+
+	// random shut
+	if(rand() % 500 == 0)
+		fire();
 }
 
 void Tank::think()
@@ -139,8 +118,7 @@ void Tank::think()
 	// enimy AI
 
 	// auto fire for enimies
-	if(next_fire_at < WorldTime::now && rand() % 50 == 0)
-		think_fire();
+	think_fire();
 	
 	if(_world->EnvMapChanged || path_to_target.size() == 0)
 	{

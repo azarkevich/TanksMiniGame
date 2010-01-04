@@ -1,0 +1,1 @@
+"Debug/tanks.exe" -connect localhost
