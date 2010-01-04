@@ -16,7 +16,6 @@
 
 class World
 {
-	Uint32 _world_time_diff;
 	int _show_bb;
 	vector< pair<Uint32, Object *> > add_queue;
 	vector<Object *> _objs;
@@ -44,6 +43,7 @@ class World
 	Sprite heart;
     
 public:
+	bool is_paused() {return game_mode == GAME_MODE_PAUSE; };
 	bool network_game;
 	Flag *player_flag;
 	Flag *enimy_flag;
@@ -69,7 +69,7 @@ public:
 		add_queue.push_back(make_pair(WorldTime::now + delay, o));
 	}
 	void add_explode_area(SDL_Rect box, int count);
-	void handle_input(bool remote_player, Uint32 system_ticks, int key);
-	void think(Uint32 ticks);
+	void handle_input(bool remote_player, int key);
+	void think();
 	void draw(SDL_Surface *s);
 };

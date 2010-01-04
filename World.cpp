@@ -29,7 +29,6 @@ World::World(int w, int h)
 
 	heart.load(TilesCache::main, "resources/heart.sprite");
 	game_mode = GAME_MODE_START;
-	_world_time_diff = 0;
 	_show_bb = 0;
 	bounds.x=0;
 	bounds.y=0;
@@ -192,7 +191,7 @@ void World::load_level(const char* level)
 	}
 }
 
-void World::handle_input(bool remote_player, Uint32 system_ticks, int key)
+void World::handle_input(bool remote_player, int key)
 {
 	if(key == SDLK_b)
 	{
@@ -221,7 +220,6 @@ void World::handle_input(bool remote_player, Uint32 system_ticks, int key)
 			else if(game_mode == GAME_MODE_PAUSE)
 			{
 				game_mode = GAME_MODE_PLAY;
-				_world_time_diff = system_ticks - WorldTime::now;
 			}
 			return;
 		}
@@ -373,13 +371,11 @@ void World::delete_objects()
 	removed_objs.clear();
 }
 
-void World::think(Uint32 system_ticks)
+void World::think()
 {
 	if(game_mode == GAME_MODE_PAUSE)
 		return;
 
-	WorldTime::now = system_ticks - _world_time_diff;
-	
 	if(game_mode == GAME_MODE_START)
 	{
 		delete_objects();
@@ -387,7 +383,6 @@ void World::think(Uint32 system_ticks)
 		enimy_flag = NULL;
 		_player = NULL;
 		_remote_player = NULL;
-		_world_time_diff = 0;
 		lives = 3;
 		respawn_player_at = WorldTime::now + 10;
 		if(network_game)

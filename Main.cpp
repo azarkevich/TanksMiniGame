@@ -59,6 +59,49 @@ vector<SDL_Surface*> load_sprites(const char *file,
 	return sprites;
 }
 
+void recv_keys(SOCKET sock, vector<SDLKey> &keys)
+{
+	keys.clear();
+
+	// read count of keys at peer
+	int count;
+	if(recv(sock, (char *)&count, sizeof(count), 0) == SOCKET_ERROR)
+	{
+		cout << "recv error: " << WSAGetLastError() << endl;
+		exit(1);
+	}
+	if(count == 0)
+		return;
+
+	// read all keys from peer
+	keys.resize(count);
+	if(recv(sock, (char *)&keys[0], sizeof(SDLKey) * count, 0) == SOCKET_ERROR)
+	{
+		cout << "recv error: " << WSAGetLastError() << endl;
+		exit(1);
+	}
+}
+
+void send_keys(SOCKET sock, vector<SDLKey> &keys)
+{
+	int count = keys.size();
+	if(send(sock, (char *)&count, sizeof(count), 0) == SOCKET_ERROR)
+	{
+		cout << "send error: " << WSAGetLastError() << endl;
+		exit(1);
+	}
+
+	if(count == 0)
+		return;
+
+	// send key array
+	if(send(sock, (const char *)&keys[0], sizeof(SDLKey) * count, 0) == SOCKET_ERROR)
+	{
+		cout << "sned error: " << WSAGetLastError() << endl;
+		exit(1);
+	}
+}
+
 int main(int argc, char **argv)
 {
 	/* Initialize the SDL library */
@@ -195,11 +238,17 @@ int main(int argc, char **argv)
 
 	SDL_Event ev;
 
-	Uint32 game_time = -1;
+	WorldTime::now = 0;
+
+	int network_exchange_initial = 20; // each 20 frames == once per 200 ms
+	int network_exchange = network_exchange_initial;
+	vector<SDLKey> keys;
+	vector<SDLKey> remote_keys;
 
 	while(true)
 	{
-		int key = -1;
+		Uint32 start_loop = SDL_GetTicks();
+
 		while(SDL_PollEvent(&ev))
 		{
 			if((ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_ESCAPE) || ev.type == SDL_QUIT)
@@ -209,74 +258,40 @@ int main(int argc, char **argv)
 
 			if(ev.type == SDL_KEYDOWN)
 			{
-				key = ev.key.keysym.sym;
+				keys.push_back(ev.key.keysym.sym);
 			}
 		}
-		
-		int remote_key = -1;
-		int local_key = -1;
-		
-		if(server || standalone)
+
+		if(network_exchange-- == 0)
 		{
-			game_time++;
-			local_key = key;
-		}
-		
-		if(server)
-		{
+			network_exchange = network_exchange_initial;
+
 			int err;
-			// server - local system
-			err = send(sock, (const char *)&local_key, sizeof(local_key), 0);
-			if(err == SOCKET_ERROR)
+			if(server)
 			{
-				cout << "send error: " << WSAGetLastError() << endl;
-				exit(1);
+				// read all keys from client, then send to client self keys
+				recv_keys(sock, remote_keys);
+				send_keys(sock, keys);
 			}
-			err = send(sock, (const char *)&game_time, sizeof(game_time), 0);
-			if(err == SOCKET_ERROR)
+			else if(client)
 			{
-				cout << "send error: " << WSAGetLastError() << endl;
-				exit(1);
+				// send keys and then read read all keys from server
+				send_keys(sock, keys);
+				recv_keys(sock, remote_keys);
 			}
-			err = recv(sock, (char *)&remote_key, sizeof(remote_key), 0);
-			if(err == SOCKET_ERROR)
-			{
-				cout << "recv error: " << WSAGetLastError() << endl;
-				exit(1);
-			}
-		}
-		else if(client)
-		{
-			int err;
-			// client remote system
-			remote_key = key;
 
-			err = recv(sock, (char *)&local_key, sizeof(local_key), 0);
-			if(err == SOCKET_ERROR)
-			{
-				cout << "recv1 error: " << WSAGetLastError() << endl;
-				exit(1);
-			}
-			recv(sock, (char *)&game_time, sizeof(game_time), 0);
-			if(err == SOCKET_ERROR)
-			{
-				cout << "recv2 error: " << WSAGetLastError() << endl;
-				exit(1);
-			}
-			send(sock, (const char *)&remote_key, sizeof(remote_key), 0);
-			if(err == SOCKET_ERROR)
-			{
-				cout << "send error: " << WSAGetLastError() << endl;
-				exit(1);
-			}
+			// handle keypress
+			for(unsigned int i=0;i<keys.size();i++)
+				w.handle_input(client, keys[i]);
+
+			for(unsigned int i=0;i<remote_keys.size();i++)
+				w.handle_input(!client, remote_keys[i]);
+
+			keys.clear();
+			remote_keys.clear();
 		}
 
-		if(local_key != -1)
-			w.handle_input(false, game_time, local_key);
-		if(remote_key != -1)
-			w.handle_input(true, game_time, remote_key);
-
-		w.think(game_time);
+		w.think();
 
 		SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 200, 200, 200));
 
@@ -284,8 +299,16 @@ int main(int argc, char **argv)
 
 		SDL_Flip(screen);
 
-		// One game_time in 10 ms
-		SDL_Delay(10);
+		// time not going if pause
+		if(w.is_paused() == false)
+			WorldTime::now++;
+
+		// each loop 10 ms. if we too fast - sleep. if we too slow - do nothing.. it's a life.
+		Uint32 time_diff = SDL_GetTicks() - start_loop;
+		if(time_diff < 10)
+		{
+			SDL_Delay(10 - time_diff);
+		}
 	}
 
 	for_each(TilesCache::main.begin(), TilesCache::main.end(), SDL_FreeSurface);

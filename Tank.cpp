@@ -104,7 +104,7 @@ void Tank::think_fire()
 		return;
 
 	// random shut
-	if(rand() % 50 == 0)
+	if(rand() % 200 == 0)
 		fire();
 }
 
