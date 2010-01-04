@@ -3,18 +3,14 @@
 
 #include "StdAfx.h"
 #include "World.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 
 vector<SDL_Surface *> TilesCache::main;
-
-SDL_Surface* load_image(const char *file)
-{
-	SDL_Surface *temp1, *temp2;
-	temp1 = SDL_LoadBMP(file);
-	temp2 = SDL_DisplayFormat(temp1);
-	SDL_FreeSurface(temp1);
-
-	return temp2;
-}
 
 vector<SDL_Surface*> load_sprites(const char *file,
 		int width, int height,
@@ -77,10 +73,109 @@ int main(int argc, char **argv)
         	exit(1);
 	}
 
+	// network init
+	bool server = false;
+	bool client = false;
+	bool standalone = false;
+	int sock = -1;
+	if(argc > 1)
+	{
+		if(strcmp(argv[1], "-server") == 0)
+		{
+			//server
+			int s = socket(AF_INET, SOCK_STREAM, 0);
+			if (s == -1)
+			{
+				cout << "Error in socket()" << endl;
+				exit(1);
+			}
+
+			sockaddr_in addr;
+			memset(&addr, 0, sizeof(addr));
+			addr.sin_family = AF_INET;
+			addr.sin_port = htons(1234);
+			addr.sin_addr.s_addr = INADDR_ANY;
+
+			int ret = bind(s, (sockaddr *)&addr, sizeof(addr));
+			if(ret != 0)
+			{
+				cout << "Error in bind() " << ret << endl;
+				exit(1);
+			}
+			
+			ret = listen(s, 1);
+			if(ret != 0)
+			{
+				cout << "Error in listen() " << ret << endl;
+				exit(1);
+			}
+
+			cout << "Server wait for client." << endl;
+			
+			sockaddr_in client_addr;
+			socklen_t len = sizeof(client_addr);
+			sock = accept(s, (sockaddr *)&client_addr, &len);
+			if(sock < 0)
+			{
+				cout << "Error in accept() " << sock << endl;
+				exit(1);
+			}
+			
+			cout << "Client connected." << endl;
+
+			close(s);
+			
+			server = true;
+		}
+		else if(strcmp(argv[1], "-connect") == 0)
+		{
+			if(argc < 3)
+			{
+				cerr << "Usage: tanks -connect <ip or host name>" << endl;
+				exit(1);
+			}
+			
+			//client
+			sock = socket(AF_INET, SOCK_STREAM, 0);
+			if (sock == -1)
+			{
+				cout << "Error in socket()" << endl;
+				exit(1);
+			}
+
+			hostent *he = gethostbyname(argv[2]);
+			if (he == NULL)
+			{
+				cerr << "Invalid host: " << argv[2] << endl;
+				exit(1);
+			}
+			
+			sockaddr_in addr;
+			memset(&addr, 0, sizeof(addr));
+			addr.sin_family = AF_INET;
+			addr.sin_port = htons(1234);
+			memcpy(&addr.sin_addr, he->h_addr, he->h_length);
+
+			cout << "Try connect to " << argv[2] << endl;
+			
+			if (connect(sock, (sockaddr *)&addr, sizeof(addr)) != 0)
+			{
+				cerr << "Connect failed" << endl;
+				exit(1);
+			}
+			
+			cout << "Connected to server." << endl;
+			
+			client = true;
+		}
+	}
+	
+	standalone = !client && !server;
+	
 	/* Clean up on exit */
 	atexit(SDL_Quit);
 
-	SDL_Surface *screen = SDL_SetVideoMode(800, 600, 0, SDL_HWSURFACE | SDL_DOUBLEBUF  | SDL_FULLSCREEN);
+	SDL_Surface *screen = SDL_SetVideoMode(800, 600, 0, SDL_HWSURFACE | SDL_DOUBLEBUF);//  | SDL_FULLSCREEN);
 	if (screen == NULL)
 	{
         	fprintf(stderr, "Couldn't set video mode: %s\n", SDL_GetError());
@@ -93,17 +188,13 @@ int main(int argc, char **argv)
 
 	World w(screen->w, screen->h);
 	w.set_level("resources/first.level");
-	
-	SDL_Event ev;
+	w.network_game = !standalone;
 
-	int delay = 0;
-	if(argc > 1)
-	{
-		delay = atoi(argv[1]);
-	}
+	SDL_Event ev;
 
 	while(true)
 	{
+		int key = -1;
 		while(SDL_PollEvent(&ev))
 		{
 			if((ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_ESCAPE) || ev.type == SDL_QUIT)
@@ -111,22 +202,51 @@ int main(int argc, char **argv)
 				exit(0);
 			}
 
-			if(ev.type == SDL_KEYDOWN || ev.type == SDL_KEYUP)
+			if(ev.type == SDL_KEYDOWN)
 			{
-				w.handle_input(ev);
+				key = ev.key.keysym.sym;
 			}
 		}
+		
+		int remote_key = -1;
+		int local_key = -1;
+		Uint32 system_ticks = 0;
+		
+		if(server || standalone)
+		{
+			system_ticks = SDL_GetTicks();
+			local_key = key;
+		}
+		
+		if(server)
+		{
+			// server - local system
+			send(sock, &local_key, sizeof(local_key), 0);
+			send(sock, &system_ticks, sizeof(system_ticks), 0);
+			recv(sock, &remote_key, sizeof(remote_key), MSG_WAITALL);
+		}
+		else if(client)
+		{
+			// client remote system
+			remote_key = key;
 
-		w.think();
+			recv(sock, &local_key, sizeof(local_key), MSG_WAITALL);
+			recv(sock, &system_ticks, sizeof(system_ticks), MSG_WAITALL);
+			send(sock, &remote_key, sizeof(remote_key), 0);
+		}
+
+		if(local_key != -1)
+			w.handle_input(false, local_key);
+		if(remote_key != -1)
+			w.handle_input(true, remote_key);
+
+		w.think(system_ticks);
 
 		SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 200, 200, 200));
 
 		w.draw(screen);
 
 		SDL_Flip(screen);
-
-		if(delay > 0)
-			SDL_Delay(delay);
 	}
 
 	for_each(TilesCache::main.begin(), TilesCache::main.end(), SDL_FreeSurface);

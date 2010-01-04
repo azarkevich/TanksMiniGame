@@ -22,8 +22,11 @@ World::World(int w, int h)
 	bounds.w = w;
 	bounds.h = h;
 	_player = NULL;
+	_remote_player = NULL;
 	player_start_x = 0;
 	player_start_y = 0;
+	remote_player_start_x = 0;
+	remote_player_start_y = 0;
 	mode_image[0] = NULL;
 	mode_image[1] = NULL;
 	mode_image[2] = SDL_LoadBMP("resources/game-pause.bmp");
@@ -42,14 +45,6 @@ World::World(int w, int h)
 World::~World()
 {
 	delete_objects();
-	for(unsigned int i = 0;i<_objs.size();i++)
-	{
-		delete _objs[i];
-	}
-	for(unsigned int i = 0;i<removed_objs.size();i++)
-	{
-		delete removed_objs[i];
-	}
 	for(int i=0;i<5;i++)
 	{
 		if(mode_image[i] != NULL)
@@ -59,7 +54,7 @@ World::~World()
 
 void World::set_level(const char* level)
 {
-  this->level = level;
+	this->level = level;
 }
 
 void World::load_level(const char* level)
@@ -149,6 +144,10 @@ void World::load_level(const char* level)
 				player_start_x = x;
 				player_start_y = y;
 				break;
+			case 'P':
+				remote_player_start_x = x;
+				remote_player_start_y = y;
+				break;
 			case 'F':
 				map_element = enimy_flag = new Flag(this, x, y);
 				_objs.push_back(enimy_flag);
@@ -179,79 +178,75 @@ void World::load_level(const char* level)
 	}
 }
 
-void World::handle_input(const SDL_Event &ev)
+void World::handle_input(bool remote_player, int key)
 {
-    if(ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_b)
-    {
-      _show_bb = (_show_bb + 1) % 3;
-      return;
-    }
-    
-	if(ev.type == SDL_KEYDOWN)
+	if(key == SDLK_b)
 	{
-		// Lose/win mode. Any key - begin new game
-		if(game_mode == GAME_MODE_LOSE || game_mode == GAME_MODE_WIN)
+		_show_bb = (_show_bb + 1) % 3;
+		return;
+	}
+
+	// Lose/win mode. Any key - begin new game
+	if(game_mode == GAME_MODE_LOSE || game_mode == GAME_MODE_WIN)
+	{
+		if(key == SDLK_SPACE)
 		{
-			if(ev.key.keysym.sym == SDLK_SPACE)
+			game_mode = GAME_MODE_START;
+		}
+		return;
+	}
+	
+	if(game_mode == GAME_MODE_PLAY || game_mode == GAME_MODE_PAUSE)
+	{
+		if(key == SDLK_p)
+		{
+			if(game_mode == GAME_MODE_PLAY)
 			{
-				game_mode = GAME_MODE_START;
+				game_mode = GAME_MODE_PAUSE;
+			}
+			else if(game_mode == GAME_MODE_PAUSE)
+			{
+				game_mode = GAME_MODE_PLAY;
+				_world_time_diff = system_ticks - WorldTime::now;
 			}
 			return;
 		}
-		
-		if(game_mode == GAME_MODE_PLAY || game_mode == GAME_MODE_PAUSE)
-        {
-			if(ev.key.keysym.sym == SDLK_p)
+	}
+	
+	Tank *p = remote_player ? _remote_player : _player;
+	
+	if(p != NULL && game_mode == GAME_MODE_PLAY)
+	{
+		if(key == SDLK_SPACE)
+		{
+			p->fire();
+		}
+		if(key == SDLK_UP || key == SDLK_DOWN || key == SDLK_LEFT || key == SDLK_RIGHT)
+		{
+			int old_orient = p->Orient;
+			if(key == SDLK_UP)
 			{
-				if(game_mode == GAME_MODE_PLAY)
-				{
-					game_mode = GAME_MODE_PAUSE;
-				}
-				else if(game_mode == GAME_MODE_PAUSE)
-				{
-					game_mode = GAME_MODE_PLAY;
-					_world_time_diff = SDL_GetTicks() - WorldTime::now;
-				}
-				return;
+				p->move_to(ORIENT_UP);
+			}
+			if(key == SDLK_DOWN)
+			{
+				p->move_to(ORIENT_DOWN);
+			}
+			if(key == SDLK_LEFT)
+			{
+				p->move_to(ORIENT_LEFT);
+			}
+			if(key == SDLK_RIGHT)
+			{
+				p->move_to(ORIENT_RIGHT);
+			}
+
+			if(is_possible_position(p) == false)
+			{
+				p->move_to(old_orient);
+				p->stop();
 			}
 		}
-		
-		if(game_mode == GAME_MODE_PLAY)
-        {
-			if(_player != NULL)
-			{
-				if(ev.key.keysym.sym == SDLK_SPACE)
-				{
-					_player->fire();
-				}
-				if(ev.key.keysym.sym == SDLK_UP || ev.key.keysym.sym == SDLK_DOWN || ev.key.keysym.sym == SDLK_LEFT || ev.key.keysym.sym == SDLK_RIGHT)
-				{
-					int old_orient = _player->Orient;
-					if(ev.key.keysym.sym == SDLK_UP)
-					{
-						_player->move_to(ORIENT_UP);
-					}
-					if(ev.key.keysym.sym == SDLK_DOWN)
-					{
-						_player->move_to(ORIENT_DOWN);
-					}
-					if(ev.key.keysym.sym == SDLK_LEFT)
-					{
-						_player->move_to(ORIENT_LEFT);
-					}
-					if(ev.key.keysym.sym == SDLK_RIGHT)
-					{
-						_player->move_to(ORIENT_RIGHT);
-					}
-
-					if(is_possible_position(_player) == false)
-					{
-						_player->move_to(old_orient);
-						_player->stop();
-					}
-				}
-			}
-        }
 	}
 }
 
@@ -376,12 +371,12 @@ void World::delete_objects()
 	removed_objs.clear();
 }
 
-void World::think()
+void World::think(Uint32 system_ticks)
 {
 	if(game_mode == GAME_MODE_PAUSE)
 		return;
 
-	WorldTime::now = SDL_GetTicks() - _world_time_diff;
+	WorldTime::now = system_ticks - _world_time_diff;
 	
 	if(game_mode == GAME_MODE_START)
 	{
@@ -389,9 +384,21 @@ void World::think()
 		player_flag = NULL;
 		enimy_flag = NULL;
 		_player = NULL;
+		_remote_player = NULL;
 		_world_time_diff = 0;
+		lives = 3;
 		respawn_player_at = WorldTime::now + 1000;
-		lives = 1;
+		if(network_game)
+		{
+			respawn_remote_player_at = WorldTime::now;
+			remote_lives = 3;
+		}
+		else
+		{
+			// never respawn
+			respawn_remote_player_at = numeric_limits<Uint32>::max();
+			remote_lives = 0;
+		}
 		load_level(level);
 		game_mode = GAME_MODE_PLAY;
 		EnvMapChanged = true;
@@ -403,6 +410,13 @@ void World::think()
 		_player = new Tank(this, TANK_PLAYER, player_start_x, player_start_y, 5);
 		_objs.push_back(_player);
 		respawn_player_at = numeric_limits<Uint32>::max();
+	}
+
+	if(respawn_remote_player_at <= WorldTime::now)
+	{
+		_remote_player = new Tank(this, TANK_PLAYER, remote_player_start_x, remote_player_start_y, 5);
+		_objs.push_back(_remote_player);
+		respawn_remote_player_at = numeric_limits<Uint32>::max();
 	}
 
 	// add pending objects
@@ -508,6 +522,7 @@ void World::think()
 	{
 		_objs[i]->think();
 	}
+	
 	// strategy calculated.
 	EnvMapChanged = false;
 	
@@ -518,16 +533,29 @@ void World::think()
 		{
 			_player = NULL;
 			lives--;
-			
-			if(lives == 0)
-			{
-				game_mode = GAME_MODE_LOSE;
-			}
-			else
-			{
-				// respawn after 2 sec.
-				respawn_player_at = WorldTime::now + 2000;
-			}
+		}
+		
+		if(_remote_player != NULL && _remote_player->is_remove_pending())
+		{
+			_remote_player = NULL;
+			remote_lives--;
+		}
+		
+		if(lives <= 0 && remote_lives <= 0)
+		{
+			game_mode = GAME_MODE_LOSE;
+		}
+		
+		if(_player == NULL && lives > 0)
+		{
+			// respawn after 2 sec.
+			respawn_player_at = WorldTime::now;
+		}
+		
+		if(_remote_player == NULL && remote_lives > 0)
+		{
+			// respawn after 2 sec.
+			respawn_remote_player_at = WorldTime::now;
 		}
 
 		if(player_flag != NULL && player_flag->Dead)
@@ -540,8 +568,13 @@ void World::think()
 			game_mode = GAME_MODE_WIN;
 		}
 
-		if(game_mode != GAME_MODE_PLAY && _player != NULL)
-			_player->stop();
+		if(game_mode != GAME_MODE_PLAY)
+		{
+			if(_player != NULL)
+				_player->stop();
+			if(_remote_player != NULL)
+				_remote_player->stop();
+		}
     }
 	
 	// Remove pending objects from map

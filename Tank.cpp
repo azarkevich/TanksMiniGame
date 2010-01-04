@@ -133,10 +133,16 @@ void Tank::think()
 {
 	sprite->think();
 
+	if(this == _world->_player || this == _world->_remote_player)
+		return;
+
+	// enimy AI
+
+	// auto fire for enimies
 	if(next_fire_at < WorldTime::now && rand() % 50 == 0)
 		think_fire();
 	
-	if(_world->_player != this && (_world->EnvMapChanged || path_to_target.size() == 0))
+	if(_world->EnvMapChanged || path_to_target.size() == 0)
 	{
 		think_strategey();
 	}
