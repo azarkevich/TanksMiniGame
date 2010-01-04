@@ -11,7 +11,6 @@
 #include "Bonus.h"
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 Uint32 WorldTime::now;
 

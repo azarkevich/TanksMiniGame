@@ -3,12 +3,7 @@
 
 #include "StdAfx.h"
 #include "World.h"
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <arpa/inet.h>
-#include <netdb.h>
+#include <Winsock2.h>
 
 vector<SDL_Surface *> TilesCache::main;
 
@@ -77,13 +72,13 @@ int main(int argc, char **argv)
 	bool server = false;
 	bool client = false;
 	bool standalone = false;
-	int sock = -1;
+	SOCKET sock = -1;
 	if(argc > 1)
 	{
 		if(strcmp(argv[1], "-server") == 0)
 		{
 			//server
-			int s = socket(AF_INET, SOCK_STREAM, 0);
+			SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
 			if (s == -1)
 			{
 				cout << "Error in socket()" << endl;
@@ -113,7 +108,7 @@ int main(int argc, char **argv)
 			cout << "Server wait for client." << endl;
 			
 			sockaddr_in client_addr;
-			socklen_t len = sizeof(client_addr);
+			int len = sizeof(client_addr);
 			sock = accept(s, (sockaddr *)&client_addr, &len);
 			if(sock < 0)
 			{
@@ -123,7 +118,7 @@ int main(int argc, char **argv)
 			
 			cout << "Client connected." << endl;
 
-			close(s);
+			closesocket(s);
 			
 			server = true;
 		}
@@ -221,18 +216,18 @@ int main(int argc, char **argv)
 		if(server)
 		{
 			// server - local system
-			send(sock, &local_key, sizeof(local_key), 0);
-			send(sock, &system_ticks, sizeof(system_ticks), 0);
-			recv(sock, &remote_key, sizeof(remote_key), MSG_WAITALL);
+			send(sock, (const char *)&local_key, sizeof(local_key), 0);
+			send(sock, (const char *)&system_ticks, sizeof(system_ticks), 0);
+			recv(sock, (char *)&remote_key, sizeof(remote_key), MSG_WAITALL);
 		}
 		else if(client)
 		{
 			// client remote system
 			remote_key = key;
 
-			recv(sock, &local_key, sizeof(local_key), MSG_WAITALL);
-			recv(sock, &system_ticks, sizeof(system_ticks), MSG_WAITALL);
-			send(sock, &remote_key, sizeof(remote_key), 0);
+			recv(sock, (char *)&local_key, sizeof(local_key), MSG_WAITALL);
+			recv(sock, (char *)&system_ticks, sizeof(system_ticks), MSG_WAITALL);
+			send(sock, (const char *)&remote_key, sizeof(remote_key), 0);
 		}
 
 		if(local_key != -1)
