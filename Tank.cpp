@@ -104,7 +104,7 @@ void Tank::think_fire()
 		return;
 
 	// random shut
-	if(rand() % 500 == 0)
+	if(rand() % 50 == 0)
 		fire();
 }
 
@@ -128,8 +128,21 @@ void Tank::think()
 	if(path_to_target.size() == 0)
 		return;
 	
-	// we still not reach next cell
-	if(Y == path_to_target[0].first*32 && X == path_to_target[0].second*32)
+	int check_point_y = path_to_target[0].first*32;
+	int check_point_x = path_to_target[0].second*32;
+	if(Orient == ORIENT_LEFT && X <= check_point_x)
+	{
+		path_to_target.pop_front();
+	}
+	else if(Orient == ORIENT_RIGHT && X >= (check_point_x + 32))
+	{
+		path_to_target.pop_front();
+	}
+	else if(Orient == ORIENT_UP && Y < check_point_y)
+	{
+		path_to_target.pop_front();
+	}
+	else if(Orient == ORIENT_DOWN && Y >= check_point_y)
 	{
 		path_to_target.pop_front();
 	}

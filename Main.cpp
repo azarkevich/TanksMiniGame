@@ -117,10 +117,7 @@ int main(int argc, char **argv)
 
 			cout << "Server wait for client." << endl;
 			
-			//sockaddr_in client_addr;
-			//int len = sizeof(client_addr);
 			sock = accept(s, NULL, NULL);
-//			sock = accept(s, (sockaddr *)&client_addr, &len);
 			if(sock < 0)
 			{
 				cout << "Error in accept() " << sock << endl;
@@ -129,7 +126,7 @@ int main(int argc, char **argv)
 			
 			cout << "Client connected." << endl;
 
-			//closesocket(s);
+			closesocket(s);
 			
 			server = true;
 		}
@@ -285,6 +282,10 @@ int main(int argc, char **argv)
 		w.draw(screen);
 
 		SDL_Flip(screen);
+
+		// 10 ms one frame
+		//SDL_Delay(10);
+		Sleep(200);
 	}
 
 	for_each(TilesCache::main.begin(), TilesCache::main.end(), SDL_FreeSurface);
