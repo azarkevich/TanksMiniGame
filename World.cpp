@@ -9,8 +9,6 @@
 #include "Flag.h"
 #include "Gun.h"
 #include "Bonus.h"
-#include <sys/stat.h>
-#include <sys/types.h>
 
 Uint32 WorldTime::now;
 

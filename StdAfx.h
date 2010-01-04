@@ -22,3 +22,6 @@ using namespace std;
 #include "SDL/SDL.h"
 
 #include <math.h>
+
+#include <sys/stat.h>
+#include <sys/types.h>
