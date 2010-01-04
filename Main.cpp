@@ -195,6 +195,8 @@ int main(int argc, char **argv)
 
 	SDL_Event ev;
 
+	Uint32 game_time = -1;
+
 	while(true)
 	{
 		int key = -1;
@@ -213,11 +215,10 @@ int main(int argc, char **argv)
 		
 		int remote_key = -1;
 		int local_key = -1;
-		Uint32 system_ticks = 0;
 		
 		if(server || standalone)
 		{
-			system_ticks = SDL_GetTicks();
+			game_time++;
 			local_key = key;
 		}
 		
@@ -231,7 +232,7 @@ int main(int argc, char **argv)
 				cout << "send error: " << WSAGetLastError() << endl;
 				exit(1);
 			}
-			err = send(sock, (const char *)&system_ticks, sizeof(system_ticks), 0);
+			err = send(sock, (const char *)&game_time, sizeof(game_time), 0);
 			if(err == SOCKET_ERROR)
 			{
 				cout << "send error: " << WSAGetLastError() << endl;
@@ -256,7 +257,7 @@ int main(int argc, char **argv)
 				cout << "recv1 error: " << WSAGetLastError() << endl;
 				exit(1);
 			}
-			recv(sock, (char *)&system_ticks, sizeof(system_ticks), 0);
+			recv(sock, (char *)&game_time, sizeof(game_time), 0);
 			if(err == SOCKET_ERROR)
 			{
 				cout << "recv2 error: " << WSAGetLastError() << endl;
@@ -271,11 +272,11 @@ int main(int argc, char **argv)
 		}
 
 		if(local_key != -1)
-			w.handle_input(false, system_ticks, local_key);
+			w.handle_input(false, game_time, local_key);
 		if(remote_key != -1)
-			w.handle_input(true, system_ticks, remote_key);
+			w.handle_input(true, game_time, remote_key);
 
-		w.think(system_ticks);
+		w.think(game_time);
 
 		SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 200, 200, 200));
 
@@ -283,9 +284,8 @@ int main(int argc, char **argv)
 
 		SDL_Flip(screen);
 
-		// 10 ms one frame
-		//SDL_Delay(10);
-		Sleep(200);
+		// One game_time in 10 ms
+		SDL_Delay(10);
 	}
 
 	for_each(TilesCache::main.begin(), TilesCache::main.end(), SDL_FreeSurface);

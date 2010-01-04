@@ -5,7 +5,7 @@ Sprite::Sprite()
 {
 	_current_frame = 0;
 	_next_time = 0;
-	Duration = 0;
+	Speed = 0;
 	AutoReset = false;
 }
 
@@ -39,7 +39,7 @@ void Sprite::think()
 				_current_frame = 0;	
 			}
 		}
-		_next_time = WorldTime::now + Duration/frames.size();
+		_next_time = WorldTime::now + Speed;
 	}
 }
 
@@ -70,7 +70,7 @@ void Sprite::load(const vector<SDL_Surface *> &v, const char *file)
 		ifs >> sn;
 		frames.push_back(v[sn]);
 	}
-	ifs >> Duration;
+	ifs >> Speed;
 	set_state(SPRITE_STOP);
 }
 
@@ -84,7 +84,7 @@ void Sprite::set_state(int state)
 	else if(_state == SPRITE_PLAY_ONCE || _state == SPRITE_PLAY_CYCLE)
 	{
 		_current_frame = 0;
-		_next_time = WorldTime::now + Duration/frames.size();
+		_next_time = WorldTime::now + Speed;
 	}
 	else if(_state == SPRITE_DONE)
 	{

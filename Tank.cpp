@@ -40,9 +40,9 @@ Tank::Tank(World *w, int tank_type, int x, int y, int armo)
 	
 	BulletArmour = 0;
 	
-	TankSpeed = 32;
+	TankSpeed = 10;
 	
-	WeaponReloadTime = 500;
+	WeaponReloadTime = 50;
 }
 
 void Tank::fire()

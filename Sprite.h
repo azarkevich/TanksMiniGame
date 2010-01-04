@@ -17,7 +17,8 @@ class Sprite
 public:
 	bool AutoReset;
 	vector<SDL_Surface *> frames;
-	int Duration;
+	// game_ticks per change
+	int Speed;
 
 	Sprite();
 

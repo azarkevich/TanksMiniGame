@@ -51,7 +51,7 @@ bool Wall::hit_by(Bullet *b)
 			b.y += Y;
 			_world->add_explode_area(b, 5);
 			BBox = BounceBox();
-			remove_delay(1000);
+			remove();
 		}
 	}
 

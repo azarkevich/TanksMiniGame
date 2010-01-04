@@ -50,7 +50,7 @@ void Gun::fire()
 		ex += BBox.w;
 
 	Bullet *b = new Bullet(world, Orient, ex, ey, this);
-	world->add_object_delay(b, 200);
+	world->add_object(b);
 	sprite->play(false);
 }
 
@@ -98,7 +98,7 @@ bool Gun::hit_by(Bullet *b)
 {
 	if(Armour == 0)
 	{
-		remove_delay(2000);
+		remove();
 		next_fire = numeric_limits<Uint32>::max();
 		BounceBox b = BBox;
 		b.x += X;

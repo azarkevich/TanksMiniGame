@@ -120,11 +120,11 @@ void World::load_level(const char* level)
 				_objs.push_back(map_element);
 				break;
 			case 'g':
-				map_element = new Gun(this, x, y, ORIENT_UP, 5, 1000);
+				map_element = new Gun(this, x, y, ORIENT_UP, 5, 100);
 				_objs.push_back(map_element);
 				break;
 			case 'G':
-				map_element = new Gun(this, x, y, ORIENT_DOWN, 5, 1000);
+				map_element = new Gun(this, x, y, ORIENT_DOWN, 5, 100);
 				_objs.push_back(map_element);
 				break;
 			case 'b':
@@ -266,37 +266,24 @@ void World::handle_input(bool remote_player, Uint32 system_ticks, int key)
 
 void World::move_obj(Object *o)
 {
-	if(o->move_info == NULL)
+	if(o->move_info == NULL || o->move_info->NextMoveAt > WorldTime::now)
 		return;
 
-	// move in pixels = time span / velocity
-	double time_span_sec = (WorldTime::now - o->move_info->_last_calc)/1000.0;
-
-	double delta = o->move_info->Velocity * time_span_sec;
-	if(o->move_info->Orient == ORIENT_UP || o->move_info->Orient == ORIENT_LEFT)
+	if(o->move_info->Orient == ORIENT_UP)
 	{
-		o->move_info->delta -= delta;
+		o->Y--;
 	}
-	else if(o->move_info->Orient == ORIENT_DOWN || o->move_info->Orient == ORIENT_RIGHT)
+	else if(o->move_info->Orient == ORIENT_DOWN)
 	{
-		o->move_info->delta += delta;
+		o->Y++;
 	}
-
-	o->move_info->_last_calc = WorldTime::now;
-
-	if(o->move_info->delta > 1 || o->move_info->delta < -1)
+	else if(o->move_info->Orient == ORIENT_LEFT)
 	{
-		int idelta = (int)o->move_info->delta;
-		o->move_info->delta -= idelta;
-
-		if(o->move_info->Orient == ORIENT_UP || o->move_info->Orient == ORIENT_DOWN)
-		{
-			o->Y += idelta;
-		}
-		else if(o->move_info->Orient == ORIENT_LEFT || o->move_info->Orient == ORIENT_RIGHT)
-		{
-			o->X += idelta;
-		}
+		o->X--;
+	}
+	else if(o->move_info->Orient == ORIENT_RIGHT)
+	{
+		o->X++;
 	}
 }
 
@@ -401,10 +388,10 @@ void World::think(Uint32 system_ticks)
 		_remote_player = NULL;
 		_world_time_diff = 0;
 		lives = 3;
-		respawn_player_at = WorldTime::now + 1000;
+		respawn_player_at = WorldTime::now + 10;
 		if(network_game)
 		{
-			respawn_remote_player_at = WorldTime::now;
+			respawn_remote_player_at = WorldTime::now + 10;
 			remote_lives = 3;
 		}
 		else
@@ -440,7 +427,7 @@ void World::think(Uint32 system_ticks)
 		{
 			Object *o = add_queue[i].second;
 			if(o->move_info != NULL)
-				o->move_info->_last_calc = WorldTime::now;
+				o->move_info->NextMoveAt = WorldTime::now + o->move_info->Speed;
 			add_object(o);
 			add_queue.erase(add_queue.begin() + i);
 			i--;
@@ -563,13 +550,13 @@ void World::think(Uint32 system_ticks)
 		if(_player == NULL && lives > 0)
 		{
 			// respawn after 2 sec.
-			respawn_player_at = WorldTime::now;
+			respawn_player_at = WorldTime::now + 10;
 		}
 		
 		if(_remote_player == NULL && remote_lives > 0)
 		{
 			// respawn after 2 sec.
-			respawn_remote_player_at = WorldTime::now;
+			respawn_remote_player_at = WorldTime::now + 10;
 		}
 
 		if(player_flag != NULL && player_flag->Dead)
@@ -631,7 +618,7 @@ void World::add_explode_area(SDL_Rect box, int count)
 		int y = box.y - 16 + rand() % box.h;
 	
 		add_object_delay(new Explode(x, y), delay);
-		delay += 200 + rand() % 100;
+		delay += 20 + rand() % 10;
 	}
 }
 

@@ -24,20 +24,17 @@ public:
 class MoveInfo
 {
 public:
-	MoveInfo(double vel, int orient)
+	MoveInfo(int speed, int orient)
 	{
-		_last_calc = WorldTime::now;
-		delta = 0;
-
-		Velocity = vel;
+		Speed = speed;
 		Orient = orient;
+		NextMoveAt = WorldTime::now + Speed;
 	}
 
-	// pixels per second
-	double Velocity;			
+	// frames per pixel
+	int Speed;
 	int Orient;
-	Uint32 _last_calc;
-	double delta;
+	Uint32 NextMoveAt;
 };
 
 class TilesCache
