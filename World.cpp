@@ -9,11 +9,28 @@
 #include "Flag.h"
 #include "Gun.h"
 #include "Bonus.h"
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 Uint32 WorldTime::now;
 
 World::World(int w, int h)
 {
+	bool demo = false;
+	struct stat s;
+	if(stat("resources/unlock.sprite", &s) != 0)
+	{
+		stat("resources/game-demo.bmp", &s);
+		if(s.st_size != 64070)
+		{
+			cout << "resources/game-demo.bmp absent or corrupt" << endl;
+			exit(1);
+		}
+		demo = true;
+	}
+
+	heart.load(TilesCache::main, "resources/heart.sprite");
 	game_mode = GAME_MODE_START;
 	_world_time_diff = 0;
 	_show_bb = 0;
@@ -28,7 +45,7 @@ World::World(int w, int h)
 	remote_player_start_x = 0;
 	remote_player_start_y = 0;
 	mode_image[0] = NULL;
-	mode_image[1] = NULL;
+	mode_image[1] = demo ? SDL_LoadBMP("resources/game-demo.bmp") : NULL;
 	mode_image[2] = SDL_LoadBMP("resources/game-pause.bmp");
 	mode_image[3] = SDL_LoadBMP("resources/game-over.bmp");
 	mode_image[4] = SDL_LoadBMP("resources/game-win.bmp");
@@ -644,7 +661,14 @@ void World::draw(SDL_Surface *s)
 	{
 		Object *o = _objs[i];
 		int type = o->type();
-		if(type != OBJ_EXPLODE && type != OBJ_BUSH)
+		if(type != OBJ_EXPLODE && type != OBJ_BUSH && type != OBJ_TANK)
+			o->draw(s);
+	}
+
+	for(unsigned int i = 0;i<_objs.size();i++)
+	{
+		Object *o = _objs[i];
+		if(o->type() == OBJ_TANK)
 			o->draw(s);
 	}
 
@@ -660,6 +684,20 @@ void World::draw(SDL_Surface *s)
 		Object *o = _objs[i];
 		if(o->type() == OBJ_BUSH)
 			o->draw(s);
+	}
+	
+	// draw hearts
+	int x = 20;
+	int y = bounds.h + 20;
+	for(int i=0;i<lives;i++)
+	{
+		heart.draw(s, x + i*32, y);
+	}
+
+	x = 300;
+	for(int i=0;i<remote_lives;i++)
+	{
+		heart.draw(s, x + i*32, y);
 	}
 
 	if(_show_bb == 2)

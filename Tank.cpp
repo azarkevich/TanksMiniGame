@@ -102,7 +102,7 @@ void Tank::think_fire()
 {
 	// want fire if ahead: player, flag
 	// not want if ahead: enimy_flag
-	
+	/*
 	int drow = 0;
 	int dcol = 0;
 	unsigned int col = X/32;
@@ -125,7 +125,7 @@ void Tank::think_fire()
 		if(_world->enimy_flag == o)
 			return;
 	}
-	
+	*/
 	fire();
 }
 
@@ -373,7 +373,7 @@ bool Tank::hit_by(Bullet *b)
 {
 	if(Armour == 0)
 	{
-		remove_delay(2000);
+		remove();
 		BounceBox b = BBox;
 		b.x += X;
 		b.y += Y;

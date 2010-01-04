@@ -40,6 +40,8 @@ class World
     
     void load_level(const char* level);
     const char *level;
+	
+	Sprite heart;
     
 public:
 	bool network_game;
