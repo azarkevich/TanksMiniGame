@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="Tanks-SDL"
+	Name="Tanks"
 	ProjectGUID="{1EE7283D-E608-49F6-995A-028586E94C32}"
 	RootNamespace="TanksSDL"
 	Keyword="Win32Proj"

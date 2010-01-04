@@ -75,23 +75,33 @@ int main(int argc, char **argv)
 	SOCKET sock = -1;
 	if(argc > 1)
 	{
+		WORD wVersionRequested = MAKEWORD(2, 2);
+
+		WSADATA wsaData;
+		int err = WSAStartup(wVersionRequested, &wsaData);
+		if ( err != 0 )
+		{
+			cerr << "Can't initialize WinSock." << endl;
+			return 1;
+		}
+
 		if(strcmp(argv[1], "-server") == 0)
 		{
 			//server
-			SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
-			if (s == -1)
+			SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+			if (s == INVALID_SOCKET)
 			{
 				cout << "Error in socket()" << endl;
 				exit(1);
 			}
 
-			sockaddr_in addr;
+			SOCKADDR_IN addr;
 			memset(&addr, 0, sizeof(addr));
 			addr.sin_family = AF_INET;
-			addr.sin_port = htons(1234);
+			addr.sin_port = htons(12345);
 			addr.sin_addr.s_addr = INADDR_ANY;
 
-			int ret = bind(s, (sockaddr *)&addr, sizeof(addr));
+			int ret = bind(s, (SOCKADDR *)&addr, sizeof(addr));
 			if(ret != 0)
 			{
 				cout << "Error in bind() " << ret << endl;
@@ -107,9 +117,10 @@ int main(int argc, char **argv)
 
 			cout << "Server wait for client." << endl;
 			
-			sockaddr_in client_addr;
-			int len = sizeof(client_addr);
-			sock = accept(s, (sockaddr *)&client_addr, &len);
+			//sockaddr_in client_addr;
+			//int len = sizeof(client_addr);
+			sock = accept(s, NULL, NULL);
+//			sock = accept(s, (sockaddr *)&client_addr, &len);
 			if(sock < 0)
 			{
 				cout << "Error in accept() " << sock << endl;
@@ -118,7 +129,7 @@ int main(int argc, char **argv)
 			
 			cout << "Client connected." << endl;
 
-			closesocket(s);
+			//closesocket(s);
 			
 			server = true;
 		}
@@ -131,8 +142,8 @@ int main(int argc, char **argv)
 			}
 			
 			//client
-			sock = socket(AF_INET, SOCK_STREAM, 0);
-			if (sock == -1)
+			sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+			if (sock == INVALID_SOCKET)
 			{
 				cout << "Error in socket()" << endl;
 				exit(1);
@@ -145,15 +156,15 @@ int main(int argc, char **argv)
 				exit(1);
 			}
 			
-			sockaddr_in addr;
+			SOCKADDR_IN addr;
 			memset(&addr, 0, sizeof(addr));
 			addr.sin_family = AF_INET;
-			addr.sin_port = htons(1234);
+			addr.sin_port = htons(12345);
 			memcpy(&addr.sin_addr, he->h_addr, he->h_length);
 
 			cout << "Try connect to " << argv[2] << endl;
 			
-			if (connect(sock, (sockaddr *)&addr, sizeof(addr)) != 0)
+			if (connect(sock, (SOCKADDR *)&addr, sizeof(addr)) != 0)
 			{
 				cerr << "Connect failed" << endl;
 				exit(1);
@@ -215,19 +226,51 @@ int main(int argc, char **argv)
 		
 		if(server)
 		{
+			int err;
 			// server - local system
-			send(sock, (const char *)&local_key, sizeof(local_key), 0);
-			send(sock, (const char *)&system_ticks, sizeof(system_ticks), 0);
-			recv(sock, (char *)&remote_key, sizeof(remote_key), MSG_WAITALL);
+			err = send(sock, (const char *)&local_key, sizeof(local_key), 0);
+			if(err == SOCKET_ERROR)
+			{
+				cout << "send error: " << WSAGetLastError() << endl;
+				exit(1);
+			}
+			err = send(sock, (const char *)&system_ticks, sizeof(system_ticks), 0);
+			if(err == SOCKET_ERROR)
+			{
+				cout << "send error: " << WSAGetLastError() << endl;
+				exit(1);
+			}
+			err = recv(sock, (char *)&remote_key, sizeof(remote_key), 0);
+			if(err == SOCKET_ERROR)
+			{
+				cout << "recv error: " << WSAGetLastError() << endl;
+				exit(1);
+			}
 		}
 		else if(client)
 		{
+			int err;
 			// client remote system
 			remote_key = key;
 
-			recv(sock, (char *)&local_key, sizeof(local_key), MSG_WAITALL);
-			recv(sock, (char *)&system_ticks, sizeof(system_ticks), MSG_WAITALL);
+			err = recv(sock, (char *)&local_key, sizeof(local_key), 0);
+			if(err == SOCKET_ERROR)
+			{
+				cout << "recv1 error: " << WSAGetLastError() << endl;
+				exit(1);
+			}
+			recv(sock, (char *)&system_ticks, sizeof(system_ticks), 0);
+			if(err == SOCKET_ERROR)
+			{
+				cout << "recv2 error: " << WSAGetLastError() << endl;
+				exit(1);
+			}
 			send(sock, (const char *)&remote_key, sizeof(remote_key), 0);
+			if(err == SOCKET_ERROR)
+			{
+				cout << "send error: " << WSAGetLastError() << endl;
+				exit(1);
+			}
 		}
 
 		if(local_key != -1)
@@ -245,6 +288,12 @@ int main(int argc, char **argv)
 	}
 
 	for_each(TilesCache::main.begin(), TilesCache::main.end(), SDL_FreeSurface);
+
+	if(server || client)
+	{
+		closesocket(sock);
+		WSACleanup( );
+	}
 
 	return 0;
 }
