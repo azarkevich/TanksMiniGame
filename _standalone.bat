@@ -1,1 +1,1 @@
-"Debug/tanks.exe"
+"src/Debug/tanks.exe"
