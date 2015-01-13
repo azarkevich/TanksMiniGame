@@ -107,8 +107,8 @@ int main(int argc, char **argv)
 	/* Initialize the SDL library */
 	if( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) < 0 )
 	{
-        	fprintf(stderr, "Couldn't initialize SDL: %s\n", SDL_GetError());
-        	exit(1);
+		fprintf(stderr, "Couldn't initialize SDL: %s\n", SDL_GetError());
+		exit(1);
 	}
 
 	// network init
@@ -224,8 +224,8 @@ int main(int argc, char **argv)
 	SDL_Surface *screen = SDL_SetVideoMode(800, 600, 0, SDL_HWSURFACE | SDL_DOUBLEBUF);//  | SDL_FULLSCREEN);
 	if (screen == NULL)
 	{
-        	fprintf(stderr, "Couldn't set video mode: %s\n", SDL_GetError());
-        	exit(1);
+		fprintf(stderr, "Couldn't set video mode: %s\n", SDL_GetError());
+		exit(1);
 	}
 
 	SDL_WM_SetCaption("Tanks", "t");

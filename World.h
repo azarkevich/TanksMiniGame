@@ -36,12 +36,12 @@ class World
 	int lives;
 	int remote_lives;
 	SDL_Surface *mode_image[5];
-    
-    void load_level(const char* level);
-    const char *level;
+
+	void load_level(const char* level);
+	const char *level;
 	
 	Sprite heart;
-    
+
 public:
 	bool is_paused() {return game_mode == GAME_MODE_PAUSE; };
 	bool network_game;
@@ -56,9 +56,9 @@ public:
 	World(int w, int h);
 	~World();
 
-    void set_level(const char* level);
+	void set_level(const char* level);
 
-    void add_explode(int x, int y);
+	void add_explode(int x, int y);
 	
 	void add_object(Object *o)
 	{
