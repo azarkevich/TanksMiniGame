@@ -14,18 +14,7 @@ Uint32 WorldTime::now;
 
 World::World(int w, int h)
 {
-	bool demo = false;
 	struct stat s;
-	if(stat("resources/unlock.sprite", &s) != 0)
-	{
-		stat("resources/game-demo.bmp", &s);
-		if(s.st_size != 64070)
-		{
-			cout << "resources/game-demo.bmp absent or corrupt" << endl;
-			exit(1);
-		}
-		demo = true;
-	}
 
 	heart.load(TilesCache::main, "resources/heart.sprite");
 	game_mode = GAME_MODE_START;
@@ -41,7 +30,7 @@ World::World(int w, int h)
 	remote_player_start_x = 0;
 	remote_player_start_y = 0;
 	mode_image[0] = NULL;
-	mode_image[1] = demo ? SDL_LoadBMP("resources/game-demo.bmp") : NULL;
+	mode_image[1] = NULL;
 	mode_image[2] = SDL_LoadBMP("resources/game-pause.bmp");
 	mode_image[3] = SDL_LoadBMP("resources/game-over.bmp");
 	mode_image[4] = SDL_LoadBMP("resources/game-win.bmp");
