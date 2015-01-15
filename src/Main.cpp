@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 			addr.sin_port = htons(12345);
 			addr.sin_addr.s_addr = INADDR_ANY;
 
-			int ret = bind(s, (SOCKADDR *)&addr, sizeof(addr));
+			int ret = ::bind(s, (SOCKADDR *)&addr, sizeof(addr));
 			if(ret != 0)
 			{
 				cout << "Error in bind() " << ret << endl;

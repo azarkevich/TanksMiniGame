@@ -1,3 +1,6 @@
 _ReSharper.*
 Debug/
 Release/
+src/ipch/
+*.opensdf
+*.sdf
