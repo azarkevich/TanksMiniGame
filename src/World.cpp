@@ -13,6 +13,7 @@
 Uint32 WorldTime::now;
 
 World::World(int w, int h)
+	: _levelIndex(0)
 {
 	struct stat s;
 
@@ -54,12 +55,7 @@ World::~World()
 	}
 }
 
-void World::set_level(const char* level)
-{
-	this->level = level;
-}
-
-void World::load_level(const char* level)
+void World::load_current_level()
 {
 	int width = 0;
 	int height = 0;
@@ -67,6 +63,9 @@ void World::load_level(const char* level)
 	int x = 1;
 	int y = 1;
 	
+	char level[256];
+	sprintf(level, "resources/%03d.level", _levelIndex);
+
 	ifstream ifs(level);
 	if(ifs.bad())
 	{
@@ -193,6 +192,12 @@ void World::handle_input(bool remote_player, int key)
 	{
 		if(key == SDLK_SPACE)
 		{
+			if (game_mode == GAME_MODE_WIN)
+			{
+				// load next layer
+				_levelIndex++;
+			}
+
 			game_mode = GAME_MODE_START;
 		}
 		return;
@@ -385,7 +390,7 @@ void World::think()
 			respawn_remote_player_at = numeric_limits<Uint32>::max();
 			remote_lives = 0;
 		}
-		load_level(level);
+		load_current_level();
 		game_mode = GAME_MODE_PLAY;
 		EnvMapChanged = true;
 		return;

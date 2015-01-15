@@ -233,7 +233,6 @@ int main(int argc, char **argv)
 	TilesCache::main = load_sprites("resources/sprites.bmp", 32, 32, 1, 1, 0, 0, 0);
 
 	World w(screen->w, screen->h);
-	w.set_level("resources/first.level");
 	w.network_game = !standalone;
 
 	SDL_Event ev;

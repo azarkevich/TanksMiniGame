@@ -37,8 +37,8 @@ class World
 	int remote_lives;
 	SDL_Surface *mode_image[5];
 
-	void load_level(const char* level);
-	const char *level;
+	int _levelIndex;
+	void load_current_level();
 	
 	Sprite heart;
 
@@ -55,8 +55,6 @@ public:
 
 	World(int w, int h);
 	~World();
-
-	void set_level(const char* level);
 
 	void add_explode(int x, int y);
 	
