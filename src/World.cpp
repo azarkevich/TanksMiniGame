@@ -197,7 +197,18 @@ void World::handle_input(bool remote_player, int key)
 				// load next layer
 				_levelIndex++;
 			}
+			else if (game_mode == GAME_MODE_LOSE)
+			{
+				// load first layer
+				_levelIndex = 0;
+			}
 
+			game_mode = GAME_MODE_START;
+		}
+
+		// retry game
+		if (key == SDLK_r)
+		{
 			game_mode = GAME_MODE_START;
 		}
 		return;
