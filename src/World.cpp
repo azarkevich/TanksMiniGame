@@ -368,12 +368,17 @@ void World::delete_objects()
 	{
 		delete _objs[i];
 	}
-	for(unsigned int i = 0;i<removed_objs.size();i++)
+	for (unsigned int i = 0; i<add_queue.size(); i++)
+	{
+		delete add_queue[i].second;
+	}
+	for (unsigned int i = 0; i<removed_objs.size(); i++)
 	{
 		delete removed_objs[i];
 	}
 	_objs.clear();
 	removed_objs.clear();
+	add_queue.clear();
 }
 
 void World::think()
