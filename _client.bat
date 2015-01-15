@@ -1,1 +1,2 @@
-"src/Debug/tanks.exe" -connect localhost
+cd src
+"Debug/tanks.exe" -connect localhost

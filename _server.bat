@@ -1,1 +1,2 @@
-"src/Debug/tanks.exe" "-server"
+cd src
+"Debug/tanks.exe" "-server"
