@@ -512,9 +512,9 @@ void World::think()
 	// strategy calculated.
 	EnvMapChanged = false;
 	
-    // Check game state
+	// Check game state
 	if(game_mode == GAME_MODE_PLAY)
-    {
+	{
 		if(_player != NULL && _player->is_remove_pending())
 		{
 			_player = NULL;
@@ -561,7 +561,7 @@ void World::think()
 			if(_remote_player != NULL)
 				_remote_player->stop();
 		}
-    }
+	}
 	
 	// Remove pending objects from map
 	for(unsigned int i=0;i<EnvMap.size();i++)
@@ -577,7 +577,7 @@ void World::think()
 		}
 	}
 
-    // Remove removed objects
+	// Remove removed objects
 	for(unsigned int i=0;i<_objs.size();i++)
 	{
 		if(_objs[i]->is_removed())

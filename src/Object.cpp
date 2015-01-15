@@ -5,7 +5,7 @@ Object::Object()
 {
 	sprite = NULL;
 	move_info = NULL;
-	remove_at = numeric_limits<Uint32>::max(); 
+	remove_at = numeric_limits<Uint32>::max();
 }
 
 Object::~Object()
