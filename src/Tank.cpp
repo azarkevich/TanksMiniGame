@@ -2,6 +2,10 @@
 #include "Tank.h"
 #include "World.h"
 #include "Bullet.h"
+#include "SoundMixer.h"
+#include "SoundResource.h"
+
+SoundResource gunFireSilencer("resources/gun-silencer.wav");
 
 Tank::Tank(World *w, int tank_type, int x, int y, int armo)
 {
@@ -68,6 +72,11 @@ void Tank::fire()
 	Bullet *b = new Bullet(_world, Orient, ex, ey, this);
 	b->set_armour(BulletArmour);
 	_world->add_object(b);
+
+	if(this == _world->_player)
+	{
+		g_mixer.Play(gunFireSilencer.buffer, gunFireSilencer.length);
+	}
 }
 
 void Tank::draw(SDL_Surface *s)

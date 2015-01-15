@@ -101,6 +101,7 @@
     <ClCompile Include="Gun.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="SoundMixer.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -120,6 +121,8 @@
     <ClInclude Include="Flag.h" />
     <ClInclude Include="Gun.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="SoundMixer.h" />
+    <ClInclude Include="SoundResource.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Tank.h" />

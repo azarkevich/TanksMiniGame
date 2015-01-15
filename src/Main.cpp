@@ -4,6 +4,8 @@
 #include "StdAfx.h"
 #include "World.h"
 #include <Winsock2.h>
+#include "SoundMixer.h"
+#include "SoundResource.h"
 
 vector<SDL_Surface *> TilesCache::main;
 
@@ -35,8 +37,8 @@ vector<SDL_Surface*> load_sprites(const char *file,
 		exit(1);
 	}
 
-	int cols =  (multi->w - border_width) / (width + border_width);
-	int rows =  (multi->h - border_height) / (height + border_height);
+	int cols = (multi->w - border_width) / (width + border_width);
+	int rows = (multi->h - border_height) / (height + border_height);
 
 	for(int row=0;row<rows;row++)
 	{
@@ -101,6 +103,14 @@ void send_keys(SOCKET sock, vector<SDLKey> &keys)
 		exit(1);
 	}
 }
+
+// prototype for our audio callback
+// see the implementation for more information
+void my_audio_callback(void *userdata, Uint8 *stream, int len);
+
+// variable declarations
+static Uint8 *audio_pos; // global pointer to the audio buffer to be played
+static Uint32 audio_len; // remaining length of the sample we have to play
 
 int main(int argc, char **argv)
 {
@@ -227,6 +237,8 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Couldn't set video mode: %s\n", SDL_GetError());
 		exit(1);
 	}
+
+	g_mixer.Init();
 
 	SDL_WM_SetCaption("Tanks", "t");
 

@@ -51,7 +51,7 @@ int Bullet::type()
 
 void Bullet::hit(Object *o)
 {
-	// Not interact with emiter. Problem in emission moment: bullet immediate hit self emitter. So need emit bullet wery carefully
+	// Not interact with emiter. Problem in emission moment: bullet immediate hit self emitter. So need emit bullet very carefully
 	// but this is boring.
 	if(o == emiter || hit_delay > 0)
 		return;

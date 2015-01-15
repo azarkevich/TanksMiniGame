@@ -2,6 +2,10 @@
 #include "Gun.h"
 #include "World.h"
 #include "Bullet.h"
+#include "SoundResource.h"
+#include "SoundMixer.h"
+
+SoundResource gunFireSound("resources/gun-fire.wav");
 
 Gun::Gun(World *w, int x, int y, int orient, int armo, Uint32 period)
 {
@@ -52,6 +56,8 @@ void Gun::fire()
 	Bullet *b = new Bullet(world, Orient, ex, ey, this);
 	world->add_object(b);
 	sprite->play(false);
+
+	g_mixer.Play(gunFireSound.buffer, gunFireSound.length);
 }
 
 void Gun::draw(SDL_Surface *s)
