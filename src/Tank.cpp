@@ -54,7 +54,7 @@ void Tank::init()
 {
 	if (this == _world->_player)
 	{
-		g_mixer.Play(tankMovement.buffer, tankMovement.length, 1, true);
+		g_mixer.Play(tankMovement.buffer, tankMovement.length, 0.01, true);
 		g_mixer.Pause(tankMovement.buffer, true);
 	}
 }
@@ -93,7 +93,7 @@ void Tank::fire()
 
 	if(this == _world->_player)
 	{
-		g_mixer.Play(gunFireSilencer.buffer, gunFireSilencer.length);
+		g_mixer.Play(gunFireSilencer.buffer, gunFireSilencer.length, 1);
 	}
 }
 

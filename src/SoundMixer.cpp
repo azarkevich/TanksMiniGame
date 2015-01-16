@@ -6,7 +6,7 @@ SoundMixer g_mixer;
 static void my_audio_callback(void *userdata, Uint8 *stream, int len)
 {
 	SoundMixer* self = (SoundMixer*)userdata;
-	self->AudioCallback(stream, len);
+	self->AudioCallback((Sint16 *)stream, len / 2);
 }
 
 SoundMixer::SoundMixer()
@@ -41,9 +41,9 @@ void SoundMixer::Init()
 	SDL_PauseAudio(0);
 }
 
-void SoundMixer::Play(Uint8 *buffer, Uint32 length, Uint8 volume, bool cycle)
+void SoundMixer::Play(Uint8 *buffer, Uint32 length, float volume, bool cycle)
 {
-	_current.push_back(SoundBuffer(buffer, length, volume, cycle));
+	_current.push_back(SoundBuffer((Sint16 *)buffer, length / 2, volume, cycle));
 }
 
 void SoundMixer::Pause(Uint8 *buffer, bool pauseOn)
@@ -52,7 +52,7 @@ void SoundMixer::Pause(Uint8 *buffer, bool pauseOn)
 	{
 		SoundBuffer &buff = _current[i];
 
-		if (buff.buffer == buffer)
+		if (buff.buffer == (Sint16 *)buffer)
 		{
 			buff.paused = pauseOn;
 		}
@@ -65,7 +65,7 @@ void SoundMixer::Remove(Uint8 *buffer)
 	{
 		SoundBuffer &buff = _current[i];
 
-		if (buff.buffer == buffer)
+		if (buff.buffer == (Sint16 *)buffer)
 		{
 			_current.erase(_current.begin() + i);
 			i--;
@@ -73,10 +73,12 @@ void SoundMixer::Remove(Uint8 *buffer)
 	}
 }
 
-void SoundMixer::AudioCallback(Uint8 *stream, int len)
+void SoundMixer::AudioCallback(Sint16 *stream, int len)
 {
 	if (_current.size() == 0)
 		return;
+
+	memset(stream, 0, len * 2);
 
 	for (int i = 0; i < _current.size(); i++)
 	{
@@ -96,7 +98,23 @@ void SoundMixer::AudioCallback(Uint8 *stream, int len)
 			if (buff.length < (buff.position + copy))
 				part = buff.length - buff.position;
 
-			SDL_MixAudio(stream + stream_pos, buff.buffer + buff.position, part, buff.volume);
+			for (int s = 0; s < part; s++)
+			{
+				int sum = stream[stream_pos + s];
+				Sint16 val = buff.buffer[buff.position + s];
+
+				if (buff.volume != 1)
+				{
+					//val = (Sint16)(val * buff.volume);
+				}
+
+				sum += val;
+				if (sum > 32767)
+					sum = 32767;
+				if (sum < -32768)
+					sum = -32768;
+				stream[stream_pos + s] = sum;
+			}
 			buff.position += part;
 			copy -= part;
 			stream_pos += part;
