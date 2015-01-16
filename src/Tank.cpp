@@ -6,6 +6,7 @@
 #include "SoundResource.h"
 
 SoundResource gunFireSilencer("resources/gun-silencer.wav");
+SoundResource tankMovement("resources/tracked-vehicle.wav");
 
 Tank::Tank(World *w, int tank_type, int x, int y, int armo)
 {
@@ -47,6 +48,23 @@ Tank::Tank(World *w, int tank_type, int x, int y, int armo)
 	TankSpeed = 3;
 	
 	WeaponReloadTime = 25;
+}
+
+void Tank::init()
+{
+	if (this == _world->_player)
+	{
+		g_mixer.Play(tankMovement.buffer, tankMovement.length, 1, true);
+		g_mixer.Pause(tankMovement.buffer, true);
+	}
+}
+
+Tank::~Tank()
+{
+	if (this == _world->_player)
+	{
+		g_mixer.Remove(tankMovement.buffer);
+	}
 }
 
 void Tank::fire()
@@ -355,6 +373,11 @@ void Tank::move_to(int orient)
 	sprite->play(true);
 
 	BBox = _orients_bb[Orient];
+
+	if (this == _world->_player)
+	{
+		g_mixer.Pause(tankMovement.buffer, false);
+	}
 }
 
 void Tank::stop()
@@ -364,6 +387,11 @@ void Tank::stop()
 	{
 		delete move_info;
 		move_info = NULL;
+	}
+
+	if (this == _world->_player)
+	{
+		g_mixer.Pause(tankMovement.buffer, true);
 	}
 }
 

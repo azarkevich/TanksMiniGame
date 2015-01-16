@@ -41,9 +41,36 @@ void SoundMixer::Init()
 	SDL_PauseAudio(0);
 }
 
-void SoundMixer::Play(Uint8 *buffer, Uint32 length, Uint8 volume)
+void SoundMixer::Play(Uint8 *buffer, Uint32 length, Uint8 volume, bool cycle)
 {
-	_current.push_back(SoundBuffer(buffer, length, volume));
+	_current.push_back(SoundBuffer(buffer, length, volume, cycle));
+}
+
+void SoundMixer::Pause(Uint8 *buffer, bool pauseOn)
+{
+	for (int i = 0; i < _current.size(); i++)
+	{
+		SoundBuffer &buff = _current[i];
+
+		if (buff.buffer == buffer)
+		{
+			buff.paused = pauseOn;
+		}
+	}
+}
+
+void SoundMixer::Remove(Uint8 *buffer)
+{
+	for (int i = 0; i < _current.size(); i++)
+	{
+		SoundBuffer &buff = _current[i];
+
+		if (buff.buffer == buffer)
+		{
+			_current.erase(_current.begin() + i);
+			i--;
+		}
+	}
 }
 
 void SoundMixer::AudioCallback(Uint8 *stream, int len)
@@ -55,26 +82,43 @@ void SoundMixer::AudioCallback(Uint8 *stream, int len)
 	{
 		SoundBuffer &buff = _current[i];
 
-		int copy = len;
-
-		if (buff.length < (buff.position + len))
-			copy = buff.length - buff.position;
-
-		if (copy == 0)
-		{
-			_current.erase(_current.begin() + i);
-			i--;
+		if (buff.paused)
 			continue;
+
+		int copy = len;
+		int stream_pos = 0;
+		while (copy > 0)
+		{
+			// copy necessary amount of information
+			int part = copy;
+
+			// or copy to buffer end if here is no enough data
+			if (buff.length < (buff.position + copy))
+				part = buff.length - buff.position;
+
+			SDL_MixAudio(stream + stream_pos, buff.buffer + buff.position, part, buff.volume);
+			buff.position += part;
+			copy -= part;
+			stream_pos += part;
+
+			// reset position if we at end of buffer and play 
+			if (buff.cycle && buff.position >= buff.length)
+			{
+				buff.position = 0;
+			}
+
+			// if no enough data for copy - exit even if copy still > 0
+			if (buff.position >= buff.length)
+			{
+				break;
+			}
 		}
 
-		SDL_MixAudio(stream, buff.buffer + buff.position, copy, buff.volume);
-		buff.position += copy;
-
-		if (buff.length < buff.position)
+		// check if buffer should be removed
+		if (buff.position >= buff.length)
 		{
 			_current.erase(_current.begin() + i);
 			i--;
-			continue;
 		}
 	}
 }

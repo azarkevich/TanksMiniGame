@@ -415,6 +415,7 @@ void World::think()
 	if(respawn_player_at <= WorldTime::now)
 	{
 		_player = new Tank(this, TANK_PLAYER, player_start_x, player_start_y, 5);
+		_player->init();
 		_objs.push_back(_player);
 		respawn_player_at = numeric_limits<Uint32>::max();
 	}
@@ -422,6 +423,7 @@ void World::think()
 	if(respawn_remote_player_at <= WorldTime::now)
 	{
 		_remote_player = new Tank(this, TANK_PLAYER, remote_player_start_x, remote_player_start_y, 5);
+		_remote_player->init();
 		_objs.push_back(_remote_player);
 		respawn_remote_player_at = numeric_limits<Uint32>::max();
 	}

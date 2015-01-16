@@ -33,6 +33,9 @@ public:
 	int Orient;
 	int TankSpeed;
 	Tank(World *w, int tank_type, int x, int y, int armo);
+	~Tank();
+
+	void init();
 
 	virtual void draw(SDL_Surface *s);
 	virtual void think();
