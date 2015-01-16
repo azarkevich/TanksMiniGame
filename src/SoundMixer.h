@@ -5,11 +5,12 @@ class SoundMixer
 	class SoundBuffer
 	{
 	public:
+		Uint8 volume;
 		Uint8 *buffer;
 		Uint32 length;
 		Uint32 position;
-		SoundBuffer(Uint8 *buffer, Uint32 length)
-			: buffer(buffer), length(length), position(0)
+		SoundBuffer(Uint8 *buffer, Uint32 length, Uint8 volume)
+			: volume(volume), buffer(buffer), length(length), position(0)
 		{
 		}
 	};
@@ -23,7 +24,7 @@ public:
 
 	void AudioCallback(Uint8 *stream, int len);
 
-	void Play(Uint8 *buffer, Uint32 length);
+	void Play(Uint8 *buffer, Uint32 length, Uint8 volume = SDL_MIX_MAXVOLUME);
 
 	bool IsEmpty()
 	{

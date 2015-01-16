@@ -41,9 +41,9 @@ void SoundMixer::Init()
 	SDL_PauseAudio(0);
 }
 
-void SoundMixer::Play(Uint8 *buffer, Uint32 length)
+void SoundMixer::Play(Uint8 *buffer, Uint32 length, Uint8 volume)
 {
-	_current.push_back(SoundBuffer(buffer, length));
+	_current.push_back(SoundBuffer(buffer, length, volume));
 }
 
 void SoundMixer::AudioCallback(Uint8 *stream, int len)
@@ -67,7 +67,7 @@ void SoundMixer::AudioCallback(Uint8 *stream, int len)
 			continue;
 		}
 
-		SDL_MixAudio(stream, buff.buffer + buff.position, copy, SDL_MIX_MAXVOLUME);
+		SDL_MixAudio(stream, buff.buffer + buff.position, copy, buff.volume);
 		buff.position += copy;
 
 		if (buff.length < buff.position)

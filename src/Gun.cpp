@@ -57,7 +57,7 @@ void Gun::fire()
 	world->add_object(b);
 	sprite->play(false);
 
-	g_mixer.Play(gunFireSound.buffer, gunFireSound.length);
+	g_mixer.Play(gunFireSound.buffer, gunFireSound.length, 1);
 }
 
 void Gun::draw(SDL_Surface *s)
