@@ -100,6 +100,7 @@ void SoundMixer::AudioCallback(Sint16 *stream, int len)
 
 			for (int s = 0; s < part; s++)
 			{
+				/*
 				int sum = stream[stream_pos + s];
 				Sint16 val = buff.buffer[buff.position + s];
 
@@ -113,7 +114,15 @@ void SoundMixer::AudioCallback(Sint16 *stream, int len)
 					sum = 32767;
 				if (sum < -32768)
 					sum = -32768;
-				stream[stream_pos + s] = sum;
+
+				stream[stream_pos + s] = (Sint16)sum;
+				*/
+
+				float A = stream[stream_pos + s] / 32768.0;
+				float B = buff.buffer[buff.position + s] / 32768.0;
+				float C = (A + B) - A*B;
+
+				stream[stream_pos + s] = C * 32768.0;
 			}
 			buff.position += part;
 			copy -= part;

@@ -5,7 +5,7 @@
 #include "SoundResource.h"
 #include "SoundMixer.h"
 
-SoundResource gunFireSound("resources/gun-fire.wav");
+SoundResource gunFireSound("resources/gun-fire.wav", 0.1);
 
 Gun::Gun(World *w, int x, int y, int orient, int armo, Uint32 period)
 {

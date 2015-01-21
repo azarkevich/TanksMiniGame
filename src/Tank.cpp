@@ -6,7 +6,7 @@
 #include "SoundResource.h"
 
 SoundResource gunFireSilencer("resources/gun-silencer.wav");
-SoundResource tankMovement("resources/tracked-vehicle.wav");
+SoundResource tankMovement("resources/tracked-vehicle.wav", 0.5);
 
 Tank::Tank(World *w, int tank_type, int x, int y, int armo)
 {
