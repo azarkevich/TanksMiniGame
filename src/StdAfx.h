@@ -19,9 +19,11 @@ using namespace std;
 #include <cstdio>
 #include <cstdlib>
 
-#include "SDL/SDL.h"
+#include "SDL/include/SDL.h"
 
 #include <math.h>
 
 #include <sys/stat.h>
 #include <sys/types.h>
+
+extern "C" { FILE __iob_func[3] = { *stdin,*stdout,*stderr }; }
